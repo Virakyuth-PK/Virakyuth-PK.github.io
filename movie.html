@@ -322,6 +322,175 @@
       border: 1px solid rgba(255,255,255,.08);
     }
 
+
+    .controls {
+      grid-template-columns: 1.4fr auto auto auto;
+    }
+
+    .button.imdb-btn {
+      background: #f5c518;
+      color: #111827;
+      box-shadow: 0 10px 25px rgba(245,197,24,.25);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(3, 7, 18, 0.78);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 1000;
+    }
+
+    .modal.show { display: flex; }
+
+    .modal-card {
+      width: min(920px, 100%);
+      max-height: min(88vh, 900px);
+      overflow: hidden;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.03);
+    }
+
+    .modal-title {
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .icon-button {
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .modal-body {
+      padding: 16px;
+      overflow: auto;
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .search-note {
+      color: var(--muted);
+      font-size: .9rem;
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+
+    .results {
+      display: grid;
+      gap: 12px;
+    }
+
+    .result-card {
+      display: grid;
+      grid-template-columns: 88px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .result-poster {
+      width: 88px;
+      height: 124px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: rgba(255,255,255,.06);
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: .8rem;
+      text-align: center;
+      padding: 8px;
+    }
+
+    .result-poster img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .result-title {
+      font-size: 1rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .result-sub {
+      color: var(--muted);
+      font-size: .9rem;
+      margin-bottom: 8px;
+      line-height: 1.45;
+    }
+
+    .result-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .result-action {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: stretch;
+      min-width: 132px;
+    }
+
+    .ghost-link {
+      text-align: center;
+      color: var(--muted);
+      font-size: .88rem;
+      text-decoration: none;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.03);
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      padding: 24px 12px;
+      border: 1px dashed rgba(255,255,255,.12);
+      border-radius: 18px;
+      background: rgba(255,255,255,.03);
+      line-height: 1.6;
+    }
+
     @media (max-width: 860px) {
       .controls {
         grid-template-columns: 1fr 1fr;
@@ -386,6 +555,7 @@
           <option value="series">TV Series</option>
         </select>
         <button id="loadBtn" class="button">Load</button>
+        <button id="imdbSearchBtn" class="button imdb-btn" type="button">IMDb</button>
       </div>
 
       <div class="meta-layout">
@@ -438,6 +608,30 @@
     </section>
   </main>
 
+
+  <div id="imdbModal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">IMDb Search Picker</div>
+          <div class="subtitle" style="margin:4px 0 0;">Search a title, then click <strong>Use This</strong> to auto-fill the IMDb ID.</div>
+        </div>
+        <button id="closeImdbModal" class="icon-button" type="button">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="search-row">
+          <input id="imdbSearchInput" class="input" placeholder="Search movie or TV series, e.g. squid game" />
+          <button id="imdbSearchRunBtn" class="button" type="button">Search</button>
+        </div>
+        <div class="search-note">This picker auto-detects the <code>tt...</code> ID from search results and fills your page directly.</div>
+        <div id="imdbSearchResults" class="results">
+          <div class="empty-state">Search IMDb title here to get movie or TV IDs fast.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
   <script>
     const imdbInput = document.getElementById('imdbInput');
     const typeSelect = document.getElementById('typeSelect');
@@ -452,6 +646,12 @@
     const statusText = document.getElementById('statusText');
     const playerTitle = document.getElementById('playerTitle');
     const topPill = document.getElementById('topPill');
+    const imdbSearchBtn = document.getElementById('imdbSearchBtn');
+    const imdbModal = document.getElementById('imdbModal');
+    const closeImdbModal = document.getElementById('closeImdbModal');
+    const imdbSearchInput = document.getElementById('imdbSearchInput');
+    const imdbSearchRunBtn = document.getElementById('imdbSearchRunBtn');
+    const imdbSearchResults = document.getElementById('imdbSearchResults');
 
     function normalizeImdbId(value) {
       let val = (value || '').trim();
@@ -629,9 +829,150 @@
       }
     }
 
+
+
+    function normalizeSearchText(value) {
+      return (value || '').trim().replace(/\s+/g, ' ');
+    }
+
+    function guessTypeFromResult(item) {
+      const qid = (item.qid || '').toLowerCase();
+      const subtitle = ((item.s || '') + ' ' + (item.q || '')).toLowerCase();
+
+      if (qid.includes('tvSeries') || qid.includes('tvMiniSeries')) return 'series';
+      if (qid.includes('tvMovie') || qid.includes('movie')) return 'movie';
+      if (subtitle.includes('tv series') || subtitle.includes('series')) return 'series';
+      return 'movie';
+    }
+
+    function openImdbModal() {
+      imdbModal.classList.add('show');
+      imdbModal.setAttribute('aria-hidden', 'false');
+      setTimeout(() => imdbSearchInput.focus(), 20);
+    }
+
+    function closeImdbPicker() {
+      imdbModal.classList.remove('show');
+      imdbModal.setAttribute('aria-hidden', 'true');
+    }
+
+    function renderImdbResults(items) {
+      if (!items || !items.length) {
+        imdbSearchResults.innerHTML = '<div class="empty-state">No result found. Try another keyword.</div>';
+        return;
+      }
+
+      imdbSearchResults.innerHTML = items.map(function(item) {
+        const imdbId = item.id || '';
+        const title = item.l || 'Unknown title';
+        const year = item.y || '';
+        const subtitle = item.s || item.q || '';
+        const type = guessTypeFromResult(item);
+        const poster = item.i && (item.i.imageUrl || item.i[0]) ? (item.i.imageUrl || item.i[0]) : '';
+        const openUrl = imdbId ? ('https://www.imdb.com/title/' + imdbId + '/') : 'https://www.imdb.com/';
+
+        return '<div class="result-card">'
+          + '<div class="result-poster">' + (poster ? '<img src="' + poster + '" alt="' + title.replace(/"/g, '&quot;') + '" loading="lazy" />' : 'No poster') + '</div>'
+          + '<div>'
+          + '  <div class="result-title">' + title + '</div>'
+          + '  <div class="result-sub">' + [year, subtitle, imdbId].filter(Boolean).join(' • ') + '</div>'
+          + '  <div class="result-meta">'
+          + '    <div class="chip">' + (type === 'series' ? 'TV Series' : 'Movie') + '</div>'
+          + '    <div class="chip">' + imdbId + '</div>'
+          + '  </div>'
+          + '</div>'
+          + '<div class="result-action">'
+          + '  <button class="button pick-imdb-btn" type="button" data-id="' + imdbId + '" data-type="' + type + '">Use This</button>'
+          + '  <a class="ghost-link" href="' + openUrl + '" target="_blank" rel="noopener noreferrer">Open IMDb</a>'
+          + '</div>'
+          + '</div>';
+      }).join('');
+    }
+
+    function jsonpRequest(url, callbackName) {
+      return new Promise(function(resolve, reject) {
+        const script = document.createElement('script');
+        let timeoutId = null;
+
+        window[callbackName] = function(data) {
+          clearTimeout(timeoutId);
+          resolve(data);
+          cleanup();
+        };
+
+        function cleanup() {
+          if (script.parentNode) script.parentNode.removeChild(script);
+          try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
+        }
+
+        script.onerror = function() {
+          clearTimeout(timeoutId);
+          cleanup();
+          reject(new Error('IMDb search failed'));
+        };
+
+        timeoutId = setTimeout(function() {
+          cleanup();
+          reject(new Error('IMDb search timeout'));
+        }, 10000);
+
+        script.src = url;
+        document.body.appendChild(script);
+      });
+    }
+
+    async function searchImdbTitles() {
+      const query = normalizeSearchText(imdbSearchInput.value);
+      if (!query) {
+        imdbSearchResults.innerHTML = '<div class="empty-state">Type a title first.</div>';
+        imdbSearchInput.focus();
+        return;
+      }
+
+      const slug = encodeURIComponent(query.toLowerCase());
+      const callbackName = 'imdb$' + query.toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+      imdbSearchResults.innerHTML = '<div class="empty-state">Searching IMDb…</div>';
+
+      try {
+        const data = await jsonpRequest('https://sg.media-imdb.com/suggests/' + (slug[0] || 'x') + '/' + slug + '.json', callbackName);
+        const items = Array.isArray(data && data.d) ? data.d.filter(function(item) { return /^tt\d+$/i.test(item.id || ''); }) : [];
+        renderImdbResults(items);
+      } catch (error) {
+        imdbSearchResults.innerHTML = '<div class="empty-state">Could not search IMDb right now. Try again.</div>';
+      }
+    }
+
     loadBtn.addEventListener('click', loadMedia);
+    imdbSearchBtn.addEventListener('click', openImdbModal);
+    closeImdbModal.addEventListener('click', closeImdbPicker);
+    imdbSearchRunBtn.addEventListener('click', searchImdbTitles);
+
+    imdbSearchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') searchImdbTitles();
+    });
+
     imdbInput.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') loadMedia();
+    });
+
+    imdbModal.addEventListener('click', function(e) {
+      if (e.target === imdbModal) closeImdbPicker();
+    });
+
+    imdbSearchResults.addEventListener('click', function(e) {
+      const btn = e.target.closest('.pick-imdb-btn');
+      if (!btn) return;
+
+      const imdbId = btn.getAttribute('data-id') || '';
+      const type = btn.getAttribute('data-type') || 'movie';
+
+      if (!imdbId) return;
+
+      imdbInput.value = imdbId;
+      typeSelect.value = type;
+      closeImdbPicker();
+      loadMedia();
     });
 
     loadMedia();
