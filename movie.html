@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -19,15 +20,18 @@
       --radius: 24px;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
-    html, body {
+    html,
+    body {
       margin: 0;
       min-height: 100%;
       font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
-        radial-gradient(circle at top left, rgba(110,168,254,.22), transparent 28%),
-        radial-gradient(circle at top right, rgba(139,92,246,.18), transparent 25%),
+        radial-gradient(circle at top left, rgba(110, 168, 254, .22), transparent 28%),
+        radial-gradient(circle at top right, rgba(139, 92, 246, .18), transparent 25%),
         linear-gradient(180deg, #09101d 0%, #0b1020 45%, #050814 100%);
       color: var(--text);
     }
@@ -46,8 +50,18 @@
       pointer-events: none;
       z-index: 0;
     }
-    .glow.one { top: 0; left: -80px; background: #3b82f6; }
-    .glow.two { right: -80px; bottom: 0; background: #7c3aed; }
+
+    .glow.one {
+      top: 0;
+      left: -80px;
+      background: #3b82f6;
+    }
+
+    .glow.two {
+      right: -80px;
+      bottom: 0;
+      background: #7c3aed;
+    }
 
     .app {
       position: relative;
@@ -57,7 +71,7 @@
     }
 
     .card {
-      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .03));
       border: 1px solid var(--card-border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
@@ -79,8 +93,8 @@
       min-height: 44px;
       padding: 0 14px;
       border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255, 255, 255, .12);
+      background: rgba(255, 255, 255, .06);
       color: var(--text);
       cursor: pointer;
       font-weight: 600;
@@ -113,7 +127,7 @@
       background: linear-gradient(135deg, var(--accent), var(--accent-2));
       font-weight: 800;
       color: white;
-      box-shadow: 0 10px 25px rgba(110,168,254,.35);
+      box-shadow: 0 10px 25px rgba(110, 168, 254, .35);
     }
 
     .brand-text h1 {
@@ -135,7 +149,7 @@
       padding: 10px 14px;
       border-radius: 999px;
       background: var(--bg-soft);
-      border: 1px solid rgba(255,255,255,.1);
+      border: 1px solid rgba(255, 255, 255, .1);
       color: var(--muted);
       font-size: .9rem;
     }
@@ -147,22 +161,27 @@
       margin-bottom: 14px;
     }
 
-    .input, .select, .button {
+    .input,
+    .select,
+    .button {
       min-height: 48px;
       border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255, 255, 255, .12);
+      background: rgba(255, 255, 255, .06);
       color: var(--text);
       font-size: .95rem;
     }
 
-    .input, .select {
+    .input,
+    .select {
       width: 100%;
       padding: 12px 14px;
       outline: none;
     }
 
-    .input::placeholder { color: var(--muted); }
+    .input::placeholder {
+      color: var(--muted);
+    }
 
     .button {
       padding: 0 18px;
@@ -170,7 +189,7 @@
       cursor: pointer;
       font-weight: 700;
       background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      box-shadow: 0 10px 25px rgba(110,168,254,.28);
+      box-shadow: 0 10px 25px rgba(110, 168, 254, .28);
     }
 
     .meta-layout {
@@ -180,9 +199,11 @@
       margin-bottom: 14px;
     }
 
-    .poster-card, .info-card, .player-shell {
-      background: rgba(0,0,0,.22);
-      border: 1px solid rgba(255,255,255,.08);
+    .poster-card,
+    .info-card,
+    .player-shell {
+      background: rgba(0, 0, 0, .22);
+      border: 1px solid rgba(255, 255, 255, .08);
       border-radius: 20px;
       overflow: hidden;
     }
@@ -244,8 +265,8 @@
     .chip {
       padding: 8px 12px;
       border-radius: 999px;
-      background: rgba(255,255,255,.05);
-      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid rgba(255, 255, 255, .08);
       color: var(--muted);
       font-size: .88rem;
     }
@@ -262,15 +283,33 @@
       justify-content: space-between;
       gap: 12px;
       padding: 12px 16px;
-      background: rgba(255,255,255,.04);
-      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(255, 255, 255, .04);
+      border-bottom: 1px solid rgba(255, 255, 255, .08);
     }
 
-    .dots { display: flex; gap: 8px; }
-    .dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.22); }
-    .dot.red { background: #fb7185; }
-    .dot.yellow { background: #fbbf24; }
-    .dot.green { background: #34d399; }
+    .dots {
+      display: flex;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .22);
+    }
+
+    .dot.red {
+      background: #fb7185;
+    }
+
+    .dot.yellow {
+      background: #fbbf24;
+    }
+
+    .dot.green {
+      background: #34d399;
+    }
 
     .player-title {
       color: var(--muted);
@@ -303,8 +342,13 @@
       min-height: 22px;
     }
 
-    .status.error { color: var(--danger); }
-    .status.success { color: var(--success); }
+    .status.error {
+      color: var(--danger);
+    }
+
+    .status.success {
+      color: var(--success);
+    }
 
     .footer-note {
       margin-top: 14px;
@@ -318,8 +362,8 @@
     .footer-note span {
       padding: 8px 12px;
       border-radius: 999px;
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid rgba(255, 255, 255, .08);
     }
 
 
@@ -330,7 +374,7 @@
     .button.imdb-btn {
       background: #f5c518;
       color: #111827;
-      box-shadow: 0 10px 25px rgba(245,197,24,.25);
+      box-shadow: 0 10px 25px rgba(245, 197, 24, .25);
     }
 
     .modal {
@@ -346,15 +390,17 @@
       z-index: 1000;
     }
 
-    .modal.show { display: flex; }
+    .modal.show {
+      display: flex;
+    }
 
     .modal-card {
       width: min(920px, 100%);
       max-height: min(88vh, 900px);
       overflow: hidden;
       border-radius: 24px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      border: 1px solid rgba(255, 255, 255, .12);
+      background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .03));
       box-shadow: var(--shadow);
       display: flex;
       flex-direction: column;
@@ -366,8 +412,8 @@
       align-items: center;
       gap: 12px;
       padding: 14px 16px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      background: rgba(255,255,255,.03);
+      border-bottom: 1px solid rgba(255, 255, 255, .08);
+      background: rgba(255, 255, 255, .03);
     }
 
     .modal-title {
@@ -380,8 +426,8 @@
       min-height: 44px;
       padding: 0 14px;
       border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255, 255, 255, .12);
+      background: rgba(255, 255, 255, .06);
       color: var(--text);
       cursor: pointer;
       font-weight: 700;
@@ -418,8 +464,8 @@
       align-items: center;
       padding: 12px;
       border-radius: 18px;
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid rgba(255, 255, 255, .08);
     }
 
     .result-poster {
@@ -427,7 +473,7 @@
       height: 124px;
       border-radius: 14px;
       overflow: hidden;
-      background: rgba(255,255,255,.06);
+      background: rgba(255, 255, 255, .06);
       display: grid;
       place-items: center;
       color: var(--muted);
@@ -477,17 +523,17 @@
       text-decoration: none;
       padding: 8px 10px;
       border-radius: 10px;
-      border: 1px solid rgba(255,255,255,.08);
-      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255, 255, 255, .08);
+      background: rgba(255, 255, 255, .03);
     }
 
     .empty-state {
       text-align: center;
       color: var(--muted);
       padding: 24px 12px;
-      border: 1px dashed rgba(255,255,255,.12);
+      border: 1px dashed rgba(255, 255, 255, .12);
       border-radius: 18px;
-      background: rgba(255,255,255,.03);
+      background: rgba(255, 255, 255, .03);
       line-height: 1.6;
     }
 
@@ -495,29 +541,50 @@
       .controls {
         grid-template-columns: 1fr 1fr;
       }
-      .controls .input { grid-column: 1 / -1; }
+
+      .controls .input {
+        grid-column: 1 / -1;
+      }
+
       .meta-layout {
         grid-template-columns: 1fr;
       }
+
       .poster-card {
         max-width: 260px;
       }
     }
 
     @media (max-width: 640px) {
-      body { padding: 12px; }
-      .card { padding: 12px; border-radius: 18px; }
-      .controls { grid-template-columns: 1fr; }
-      .button, .select, .input, .text-button {
+      body {
+        padding: 12px;
+      }
+
+      .card {
+        padding: 12px;
+        border-radius: 18px;
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      .button,
+      .select,
+      .input,
+      .text-button {
         min-height: 50px;
         font-size: 16px;
       }
+
       .player-head {
         padding: 10px 12px;
       }
+
       .player-title {
         max-width: 62vw;
       }
+
       .footer-note span {
         width: 100%;
         text-align: center;
@@ -525,6 +592,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="glow one"></div>
   <div class="glow two"></div>
@@ -533,6 +601,7 @@
     <section class="card">
       <div class="back-row">
         <a href="index.html" class="text-button">← Back to Services</a>
+        <a href="https://kisskh.co" class="text-button" target="_blank">🇰🇷 KissKH Korea</a>
         <div class="pill" id="topPill">Ready</div>
       </div>
 
@@ -548,7 +617,8 @@
       </div>
 
       <div class="controls">
-        <input id="imdbInput" class="input" placeholder="IMDb ID or digits only, e.g. tt0944947 or 0944947" value="tt26443616" />
+        <input id="imdbInput" class="input" placeholder="IMDb ID or digits only, e.g. tt0944947 or 0944947"
+          value="tt26443616" />
         <select id="typeSelect" class="select">
           <option value="auto">Auto detect</option>
           <option value="movie">Movie</option>
@@ -579,7 +649,8 @@
           </div>
 
           <div class="plot" id="mediaPlot">
-            This movie page can embed a movie or TV series stream, then fetch metadata like title, poster, year, rating, genres, and description.
+            This movie page can embed a movie or TV series stream, then fetch metadata like title, poster, year, rating,
+            genres, and description.
           </div>
         </div>
       </div>
@@ -594,11 +665,13 @@
           <div class="player-title" id="playerTitle">Embedded Player</div>
         </div>
         <div class="frame-wrap">
-          <iframe id="frame" src="https://vidsrcme.ru/embed/movie?imdb=tt26443616" referrerpolicy="origin" allowfullscreen></iframe>
+          <iframe id="frame" src="https://vidsrcme.ru/embed/movie?imdb=tt26443616" referrerpolicy="origin"
+            allowfullscreen></iframe>
         </div>
       </div>
 
-      <div class="status" id="statusText">Tip: you can paste digits only and it will automatically add tt in front.</div>
+      <div class="status" id="statusText">Tip: you can paste digits only and it will automatically add tt in front.
+      </div>
 
       <div class="footer-note">
         <span>movie.html</span>
@@ -614,7 +687,8 @@
       <div class="modal-head">
         <div>
           <div class="modal-title">IMDb Search Picker</div>
-          <div class="subtitle" style="margin:4px 0 0;">Search a title, then click <strong>Use This</strong> to auto-fill the IMDb ID.</div>
+          <div class="subtitle" style="margin:4px 0 0;">Search a title, then click <strong>Use This</strong> to
+            auto-fill the IMDb ID.</div>
         </div>
         <button id="closeImdbModal" class="icon-button" type="button">✕</button>
       </div>
@@ -623,7 +697,8 @@
           <input id="imdbSearchInput" class="input" placeholder="Search movie or TV series, e.g. squid game" />
           <button id="imdbSearchRunBtn" class="button" type="button">Search</button>
         </div>
-        <div class="search-note">This picker auto-detects the <code>tt...</code> ID from search results and fills your page directly.</div>
+        <div class="search-note">This picker auto-detects the <code>tt...</code> ID from search results and fills your
+          page directly.</div>
         <div id="imdbSearchResults" class="results">
           <div class="empty-state">Search IMDb title here to get movie or TV IDs fast.</div>
         </div>
@@ -677,7 +752,7 @@
 
     function setChips(list) {
       chips.innerHTML = '';
-      list.filter(Boolean).forEach(function(item) {
+      list.filter(Boolean).forEach(function (item) {
         const el = document.createElement('div');
         el.className = 'chip';
         el.textContent = item;
@@ -792,7 +867,7 @@
               applySeriesMeta(seriesMeta, imdbId);
               return;
             }
-          } catch (e) {}
+          } catch (e) { }
 
           const tvMaze = await fetchTvMaze(imdbId);
           applyTvMazeFallback(tvMaze, imdbId);
@@ -805,7 +880,7 @@
             applyMovieMeta(movieMeta, imdbId);
             return;
           }
-        } catch (e) {}
+        } catch (e) { }
 
         try {
           const seriesMeta = await fetchCinemeta('series', imdbId);
@@ -813,7 +888,7 @@
             applySeriesMeta(seriesMeta, imdbId);
             return;
           }
-        } catch (e) {}
+        } catch (e) { }
 
         const tvMaze = await fetchTvMaze(imdbId);
         applyTvMazeFallback(tvMaze, imdbId);
@@ -862,7 +937,7 @@
         return;
       }
 
-      imdbSearchResults.innerHTML = items.map(function(item) {
+      imdbSearchResults.innerHTML = items.map(function (item) {
         const imdbId = item.id || '';
         const title = item.l || 'Unknown title';
         const year = item.y || '';
@@ -890,11 +965,11 @@
     }
 
     function jsonpRequest(url, callbackName) {
-      return new Promise(function(resolve, reject) {
+      return new Promise(function (resolve, reject) {
         const script = document.createElement('script');
         let timeoutId = null;
 
-        window[callbackName] = function(data) {
+        window[callbackName] = function (data) {
           clearTimeout(timeoutId);
           resolve(data);
           cleanup();
@@ -905,13 +980,13 @@
           try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
         }
 
-        script.onerror = function() {
+        script.onerror = function () {
           clearTimeout(timeoutId);
           cleanup();
           reject(new Error('IMDb search failed'));
         };
 
-        timeoutId = setTimeout(function() {
+        timeoutId = setTimeout(function () {
           cleanup();
           reject(new Error('IMDb search timeout'));
         }, 10000);
@@ -936,7 +1011,7 @@
 
       try {
         const data = await jsonpRequest('https://sg.media-imdb.com/suggests/' + (slug[0] || 'x') + '/' + slug + '.json', callbackName);
-        const items = Array.isArray(data && data.d) ? data.d.filter(function(item) { return /^tt\d+$/i.test(item.id || ''); }) : [];
+        const items = Array.isArray(data && data.d) ? data.d.filter(function (item) { return /^tt\d+$/i.test(item.id || ''); }) : [];
         renderImdbResults(items);
       } catch (error) {
         imdbSearchResults.innerHTML = '<div class="empty-state">Could not search IMDb right now. Try again.</div>';
@@ -948,19 +1023,19 @@
     closeImdbModal.addEventListener('click', closeImdbPicker);
     imdbSearchRunBtn.addEventListener('click', searchImdbTitles);
 
-    imdbSearchInput.addEventListener('keydown', function(e) {
+    imdbSearchInput.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') searchImdbTitles();
     });
 
-    imdbInput.addEventListener('keydown', function(e) {
+    imdbInput.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') loadMedia();
     });
 
-    imdbModal.addEventListener('click', function(e) {
+    imdbModal.addEventListener('click', function (e) {
       if (e.target === imdbModal) closeImdbPicker();
     });
 
-    imdbSearchResults.addEventListener('click', function(e) {
+    imdbSearchResults.addEventListener('click', function (e) {
       const btn = e.target.closest('.pick-imdb-btn');
       if (!btn) return;
 
@@ -978,4 +1053,5 @@
     loadMedia();
   </script>
 </body>
+
 </html>
