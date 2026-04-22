@@ -2,18 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Movie Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Smart IMDb Player</title>
   <style>
     :root {
       --bg: #0b1020;
       --bg-soft: rgba(255, 255, 255, 0.06);
-      --card: rgba(15, 23, 42, 0.75);
       --card-border: rgba(255, 255, 255, 0.12);
       --text: #ecf2ff;
       --muted: #9fb0d0;
       --accent: #6ea8fe;
       --accent-2: #8b5cf6;
+      --danger: #fb7185;
+      --success: #34d399;
       --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
       --radius: 24px;
     }
@@ -23,7 +24,7 @@
     html, body {
       margin: 0;
       min-height: 100%;
-      font-family: Inter, system-ui, sans-serif;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
         radial-gradient(circle at top left, rgba(110,168,254,.22), transparent 28%),
         radial-gradient(circle at top right, rgba(139,92,246,.18), transparent 25%),
@@ -35,95 +36,593 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     }
 
-    .app { width: min(1000px,100%); }
+    .glow {
+      position: fixed;
+      width: 320px;
+      height: 320px;
+      border-radius: 999px;
+      filter: blur(80px);
+      opacity: 0.35;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow.one { top: 0; left: -80px; background: #3b82f6; }
+    .glow.two { right: -80px; bottom: 0; background: #7c3aed; }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      width: min(1120px, 100%);
+    }
 
     .card {
-      background: rgba(255,255,255,.05);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      padding: 18px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .brand {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .brand-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      font-weight: 800;
+      color: white;
+      box-shadow: 0 10px 25px rgba(110,168,254,.35);
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: clamp(1.05rem, 2vw, 1.45rem);
+      line-height: 1.2;
+    }
+
+    .brand-text p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: var(--bg-soft);
       border: 1px solid rgba(255,255,255,.1);
-      border-radius: 20px;
-      padding: 20px;
+      color: var(--muted);
+      font-size: .9rem;
     }
 
     .controls {
-      display:flex;
-      gap:10px;
-      margin-bottom:12px;
+      display: grid;
+      grid-template-columns: 1.4fr auto auto;
+      gap: 10px;
+      margin-bottom: 14px;
     }
 
-    input {
-      flex:1;
-      padding:12px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.1);
-      background:rgba(255,255,255,.05);
-      color:white;
+    .input, .select, .button {
+      min-height: 48px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-size: .95rem;
     }
 
-    button {
-      padding:12px 16px;
-      border:none;
-      border-radius:12px;
-      background:linear-gradient(135deg,var(--accent),var(--accent-2));
-      color:white;
-      cursor:pointer;
-      font-weight:bold;
+    .input, .select {
+      width: 100%;
+      padding: 12px 14px;
+      outline: none;
+    }
+
+    .input::placeholder { color: var(--muted); }
+
+    .button {
+      padding: 0 18px;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 10px 25px rgba(110,168,254,.28);
+    }
+
+    .button.secondary {
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: none;
+    }
+
+    .meta-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .poster-card, .info-card, .player-shell {
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .poster-wrap {
+      aspect-ratio: 2 / 3;
+      background: #0a0f1d;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .poster-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .poster-fallback {
+      padding: 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    .info-card {
+      padding: 16px;
+    }
+
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .title-row h2 {
+      margin: 0;
+      font-size: clamp(1.2rem, 2.8vw, 2rem);
+      line-height: 1.15;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: .96rem;
+      margin-bottom: 14px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .chip {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      color: var(--muted);
+      font-size: .88rem;
+    }
+
+    .plot {
+      color: #dce8ff;
+      line-height: 1.6;
+      font-size: .95rem;
+    }
+
+    .player-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,.04);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    .dots { display: flex; gap: 8px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.22); }
+    .dot.red { background: #fb7185; }
+    .dot.yellow { background: #fbbf24; }
+    .dot.green { background: #34d399; }
+
+    .player-title {
+      color: var(--muted);
+      font-size: .9rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .frame-wrap {
-      position:relative;
-      width:100%;
-      aspect-ratio:16/9;
-      background:black;
-      border-radius:16px;
-      overflow:hidden;
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
     }
 
     iframe {
-      position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
-      border:0;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
     }
 
+    .status {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: .9rem;
+      min-height: 22px;
+    }
+
+    .status.error { color: var(--danger); }
+    .status.success { color: var(--success); }
+
+    .footer-note {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .footer-note span {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    @media (max-width: 860px) {
+      .controls {
+        grid-template-columns: 1fr 1fr;
+      }
+      .controls .input { grid-column: 1 / -1; }
+      .meta-layout {
+        grid-template-columns: 1fr;
+      }
+      .poster-card {
+        max-width: 260px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 12px; }
+      .card { padding: 12px; border-radius: 18px; }
+      .controls {
+        grid-template-columns: 1fr;
+      }
+      .button, .select, .input {
+        min-height: 50px;
+        font-size: 16px;
+      }
+      .player-head {
+        padding: 10px 12px;
+      }
+      .player-title {
+        max-width: 62vw;
+      }
+      .footer-note {
+        gap: 8px;
+      }
+      .footer-note span {
+        width: 100%;
+        text-align: center;
+      }
+    }
   </style>
 </head>
 <body>
+  <div class="glow one"></div>
+  <div class="glow two"></div>
 
-<div class="app">
-  <div class="card">
+  <main class="app">
+    <section class="card">
+      <div class="topbar">
+        <div class="brand">
+          <div class="brand-badge">▶</div>
+          <div class="brand-text">
+            <h1>Smart IMDb Player</h1>
+            <p>Movie + TV series support with poster, title, and mobile-friendly layout</p>
+          </div>
+        </div>
+        <div class="pill" id="topPill">Ready</div>
+      </div>
 
-    <div class="controls">
-      <input id="imdbInput" placeholder="tt26443616 OR 26443616" value="tt26443616" />
-      <button onclick="loadMovie()">Load</button>
-    </div>
+      <div class="controls">
+        <input id="imdbInput" class="input" placeholder="IMDb ID or digits only, e.g. tt0944947 or 0944947" value="tt26443616" />
+        <select id="typeSelect" class="select">
+          <option value="auto">Auto detect</option>
+          <option value="movie">Movie</option>
+          <option value="series">TV Series</option>
+        </select>
+        <button id="loadBtn" class="button">Load</button>
+      </div>
 
-    <div class="frame-wrap">
-      <iframe id="frame" src="https://vidsrcme.ru/embed/movie?imdb=tt26443616"></iframe>
-    </div>
+      <div class="meta-layout">
+        <div class="poster-card">
+          <div class="poster-wrap" id="posterWrap">
+            <div class="poster-fallback">Poster will appear here</div>
+          </div>
+        </div>
 
-  </div>
-</div>
+        <div class="info-card">
+          <div class="title-row">
+            <div>
+              <h2 id="mediaTitle">Waiting for title…</h2>
+              <div class="subtitle" id="mediaSubtitle">Enter an IMDb ID and load metadata.</div>
+            </div>
+            <div class="chip" id="mediaType">Unknown</div>
+          </div>
 
-<script>
-function loadMovie(){
-  let val = document.getElementById('imdbInput').value.trim();
+          <div class="chips" id="chips">
+            <div class="chip">IMDb</div>
+          </div>
 
-  // if user only put number → auto add tt
-  if(!val.startsWith('tt')){
-    val = 'tt' + val;
-  }
+          <div class="plot" id="mediaPlot">
+            This page can embed a movie or TV series stream, then fetch metadata like title, poster, year, rating, genres, and description.
+          </div>
+        </div>
+      </div>
 
-  // basic clean (remove spaces etc)
-  val = val.replace(/[^a-z0-9]/gi,'');
+      <div class="player-shell">
+        <div class="player-head">
+          <div class="dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <div class="player-title" id="playerTitle">Embedded Player</div>
+        </div>
+        <div class="frame-wrap">
+          <iframe id="frame" src="https://vidsrcme.ru/embed/movie?imdb=tt26443616" referrerpolicy="origin" allowfullscreen></iframe>
+        </div>
+      </div>
 
-  document.getElementById('frame').src =
-    'https://vidsrcme.ru/embed/movie?imdb=' + val;
-}
-</script>
+      <div class="status" id="statusText">Tip: you can paste digits only and it will automatically add tt in front.</div>
 
+      <div class="footer-note">
+        <span>Auto adds tt prefix</span>
+        <span>Supports movie and TV series</span>
+        <span>Responsive mobile layout</span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const imdbInput = document.getElementById('imdbInput');
+    const typeSelect = document.getElementById('typeSelect');
+    const loadBtn = document.getElementById('loadBtn');
+    const frame = document.getElementById('frame');
+    const mediaTitle = document.getElementById('mediaTitle');
+    const mediaSubtitle = document.getElementById('mediaSubtitle');
+    const mediaType = document.getElementById('mediaType');
+    const mediaPlot = document.getElementById('mediaPlot');
+    const chips = document.getElementById('chips');
+    const posterWrap = document.getElementById('posterWrap');
+    const statusText = document.getElementById('statusText');
+    const playerTitle = document.getElementById('playerTitle');
+    const topPill = document.getElementById('topPill');
+
+    function normalizeImdbId(value) {
+      let val = (value || '').trim();
+      if (!val) return '';
+      val = val.replace(/[^a-z0-9]/gi, '');
+      if (!/^tt/i.test(val)) val = 'tt' + val;
+      return val.toLowerCase();
+    }
+
+    function setStatus(message, type) {
+      statusText.textContent = message;
+      statusText.className = 'status' + (type ? ' ' + type : '');
+      topPill.textContent = type === 'error' ? 'Error' : type === 'success' ? 'Loaded' : 'Ready';
+    }
+
+    function setPoster(url) {
+      if (!url) {
+        posterWrap.innerHTML = '<div class="poster-fallback">No poster found</div>';
+        return;
+      }
+      posterWrap.innerHTML = '<img src="' + url + '" alt="Poster" loading="lazy" />';
+    }
+
+    function setChips(list) {
+      chips.innerHTML = '';
+      list.filter(Boolean).forEach(function(item) {
+        const el = document.createElement('div');
+        el.className = 'chip';
+        el.textContent = item;
+        chips.appendChild(el);
+      });
+    }
+
+    function setPlayer(type, imdbId, title) {
+      const pathType = type === 'series' ? 'tv' : 'movie';
+      frame.src = 'https://vidsrcme.ru/embed/' + pathType + '?imdb=' + imdbId;
+      playerTitle.textContent = (type === 'series' ? 'TV Series' : 'Movie') + ' • ' + imdbId + (title ? ' • ' + title : '');
+    }
+
+    async function fetchCinemeta(type, imdbId) {
+      const pathType = type === 'series' ? 'series' : 'movie';
+      const res = await fetch('https://cinemeta-live.strem.io/meta/' + pathType + '/' + imdbId + '.json');
+      if (!res.ok) throw new Error('Metadata not found');
+      const data = await res.json();
+      return data && data.meta ? data.meta : null;
+    }
+
+    async function fetchTvMaze(imdbId) {
+      const res = await fetch('https://api.tvmaze.com/lookup/shows?imdb=' + imdbId);
+      if (!res.ok) throw new Error('TV lookup not found');
+      return await res.json();
+    }
+
+    function applyMovieMeta(meta, imdbId) {
+      mediaTitle.textContent = meta.name || 'Unknown title';
+      mediaSubtitle.textContent = [meta.year, meta.releaseInfo].filter(Boolean).join(' • ') || imdbId;
+      mediaType.textContent = 'Movie';
+      mediaPlot.textContent = meta.description || 'No description available.';
+      setPoster(meta.poster || meta.background || '');
+      setChips([
+        'Movie',
+        imdbId,
+        meta.imdbRating ? 'IMDb ' + meta.imdbRating : '',
+        meta.runtime ? meta.runtime + ' min' : '',
+        Array.isArray(meta.genre) ? meta.genre.join(', ') : ''
+      ]);
+      setPlayer('movie', imdbId, meta.name || '');
+      setStatus('Movie loaded successfully.', 'success');
+    }
+
+    function stripHtml(text) {
+      const div = document.createElement('div');
+      div.innerHTML = text || '';
+      return div.textContent || div.innerText || '';
+    }
+
+    function applySeriesMeta(meta, imdbId) {
+      mediaTitle.textContent = meta.name || 'Unknown title';
+      mediaSubtitle.textContent = [meta.year, meta.status, meta.network].filter(Boolean).join(' • ') || imdbId;
+      mediaType.textContent = 'TV Series';
+      mediaPlot.textContent = meta.description || 'No description available.';
+      setPoster(meta.poster || meta.background || '');
+      setChips([
+        'TV Series',
+        imdbId,
+        meta.imdbRating ? 'IMDb ' + meta.imdbRating : '',
+        Array.isArray(meta.genre) ? meta.genre.join(', ') : ''
+      ]);
+      setPlayer('series', imdbId, meta.name || '');
+      setStatus('TV series loaded successfully.', 'success');
+    }
+
+    function applyTvMazeFallback(show, imdbId) {
+      mediaTitle.textContent = show.name || 'Unknown title';
+      mediaSubtitle.textContent = [show.premiered, show.status, show.network && show.network.name].filter(Boolean).join(' • ') || imdbId;
+      mediaType.textContent = 'TV Series';
+      mediaPlot.textContent = stripHtml(show.summary) || 'No description available.';
+      setPoster(show.image ? (show.image.original || show.image.medium) : '');
+      setChips([
+        'TV Series',
+        imdbId,
+        show.rating && show.rating.average ? 'TVMaze ' + show.rating.average : '',
+        Array.isArray(show.genres) ? show.genres.join(', ') : '',
+        show.language || ''
+      ]);
+      setPlayer('series', imdbId, show.name || '');
+      setStatus('TV series loaded from fallback metadata.', 'success');
+    }
+
+    async function loadMedia() {
+      const imdbId = normalizeImdbId(imdbInput.value);
+      const selectedType = typeSelect.value;
+
+      if (!/^tt\d{5,12}$/i.test(imdbId)) {
+        setStatus('Invalid IMDb ID. Use tt0944947 or digits only.', 'error');
+        imdbInput.focus();
+        return;
+      }
+
+      imdbInput.value = imdbId;
+      setStatus('Loading metadata and player…');
+      mediaTitle.textContent = 'Loading…';
+      mediaSubtitle.textContent = imdbId;
+      mediaPlot.textContent = 'Please wait while metadata is loading.';
+      mediaType.textContent = selectedType === 'auto' ? 'Auto detect' : selectedType === 'series' ? 'TV Series' : 'Movie';
+      setPoster('');
+      setChips(['Loading', imdbId]);
+
+      try {
+        if (selectedType === 'movie') {
+          const movieMeta = await fetchCinemeta('movie', imdbId);
+          if (!movieMeta) throw new Error('Movie not found');
+          applyMovieMeta(movieMeta, imdbId);
+          return;
+        }
+
+        if (selectedType === 'series') {
+          try {
+            const seriesMeta = await fetchCinemeta('series', imdbId);
+            if (seriesMeta) {
+              applySeriesMeta(seriesMeta, imdbId);
+              return;
+            }
+          } catch (e) {}
+
+          const tvMaze = await fetchTvMaze(imdbId);
+          applyTvMazeFallback(tvMaze, imdbId);
+          return;
+        }
+
+        try {
+          const movieMeta = await fetchCinemeta('movie', imdbId);
+          if (movieMeta) {
+            applyMovieMeta(movieMeta, imdbId);
+            return;
+          }
+        } catch (e) {}
+
+        try {
+          const seriesMeta = await fetchCinemeta('series', imdbId);
+          if (seriesMeta) {
+            applySeriesMeta(seriesMeta, imdbId);
+            return;
+          }
+        } catch (e) {}
+
+        const tvMaze = await fetchTvMaze(imdbId);
+        applyTvMazeFallback(tvMaze, imdbId);
+      } catch (error) {
+        setStatus('Could not load metadata for this IMDb ID, but the player URL can still be built.', 'error');
+        mediaTitle.textContent = 'Metadata unavailable';
+        mediaSubtitle.textContent = imdbId;
+        mediaType.textContent = selectedType === 'series' ? 'TV Series' : selectedType === 'movie' ? 'Movie' : 'Unknown';
+        mediaPlot.textContent = 'Metadata API did not return a result. You can still try playing it manually.';
+        setPoster('');
+        setChips([imdbId, 'No metadata']);
+        setPlayer(selectedType === 'series' ? 'series' : 'movie', imdbId, '');
+      }
+    }
+
+    loadBtn.addEventListener('click', loadMedia);
+    imdbInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') loadMedia();
+    });
+
+    loadMedia();
+  </script>
 </body>
 </html>
