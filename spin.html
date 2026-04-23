@@ -221,49 +221,240 @@
             border: 1px solid rgba(255, 255, 255, .08);
             border-radius: 16px;
             padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wheel-result::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(110, 168, 254, 0.1) 50%, transparent 70%);
+            animation: shimmer 3s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
         }
 
         .wheel-container {
             position: relative;
-            width: 300px;
-            height: 300px;
-            margin: 0 auto 20px;
+            width: 320px;
+            height: 320px;
+            margin: 0 auto 30px;
+            filter: drop-shadow(0 0 30px rgba(110, 168, 254, 0.3));
+        }
+
+        .wheel-container::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent, rgba(110, 168, 254, 0.2), transparent);
+            animation: rotate 8s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .wheel {
             width: 100%;
             height: 100%;
-            transition: transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.5));
+        }
+
+        .wheel.spinning {
+            animation: spinPulse 4s ease-out;
+        }
+
+        @keyframes spinPulse {
+            0% {
+                filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.5)) brightness(1);
+            }
+
+            50% {
+                filter: drop-shadow(0 0 40px rgba(110, 168, 254, 0.6)) brightness(1.2);
+            }
+
+            100% {
+                filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.5)) brightness(1);
+            }
+        }
         }
 
         .pointer {
             position: absolute;
-            top: -10px;
+            top: -20px;
             left: 50%;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 10px solid transparent;
-            border-right: 10px solid transparent;
-            border-bottom: 20px solid var(--accent);
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-bottom: 40px solid var(--accent);
             z-index: 10;
+            filter: drop-shadow(0 0 15px rgba(110, 168, 254, 0.9));
+            animation: pointerGlow 1.5s ease-in-out infinite alternate;
+        }
+
+        .pointer::before {
+            content: '🎯';
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            animation: pointerPulse 1.5s ease-in-out infinite alternate;
+        }
+
+        .pointer::after {
+            content: 'WINNER';
+            position: absolute;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            font-weight: bold;
+            color: var(--accent);
+            text-shadow: 0 0 5px rgba(110, 168, 254, 0.8);
+            letter-spacing: 1px;
+        }
+
+        @keyframes pointerGlow {
+            0% {
+                filter: drop-shadow(0 0 15px rgba(110, 168, 254, 0.9));
+                border-bottom-color: var(--accent);
+            }
+
+            100% {
+                filter: drop-shadow(0 0 25px rgba(110, 168, 254, 1));
+                border-bottom-color: #ffffff;
+            }
+        }
+
+        @keyframes pointerPulse {
+            0% {
+                transform: translateX(-50%) scale(1);
+                text-shadow: 0 0 5px rgba(110, 168, 254, 0.8);
+            }
+
+            100% {
+                transform: translateX(-50%) scale(1.1);
+                text-shadow: 0 0 15px rgba(110, 168, 254, 1);
+            }
         }
 
         .result-text {
-            font-size: 1.5rem;
-            font-weight: 700;
+            font-size: 1.8rem;
+            font-weight: 800;
             color: var(--success);
-            margin-top: 16px;
+            margin-top: 20px;
+            text-shadow: 0 0 20px rgba(52, 211, 153, 0.5);
+            animation: resultGlow 0.5s ease-out;
+            position: relative;
+        }
+
+        @keyframes resultGlow {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: confettiFall 3s ease-out forwards;
+        }
+
+        .confetti:nth-child(odd) {
+            background: var(--accent-2);
+            animation-delay: 0.1s;
+        }
+
+        .confetti:nth-child(3n) {
+            background: var(--success);
+            animation-delay: 0.2s;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                opacity: 1;
+                transform: translateY(-20px) translateX(0) rotate(0deg);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(100vh) translateX(var(--random-x, 0)) rotate(720deg);
+            }
+        }
+
+        .spin-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .spin-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .spin-btn:active::before {
+            width: 300px;
+            height: 300px;
         }
 
         @media (max-width: 768px) {
-            .form-grid {
-                grid-template-columns: 1fr;
+            .wheel-container {
+                width: 280px;
+                height: 280px;
             }
 
-            .wheel-container {
-                width: 250px;
-                height: 250px;
+            .result-text {
+                font-size: 1.5rem;
             }
         }
     </style>
@@ -371,9 +562,32 @@ Pasta</textarea>
 
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.setAttribute('d', pathData);
-                path.setAttribute('fill', `hsl(${index * (360 / numItems)}, 70%, 50%)`);
-                path.setAttribute('stroke', 'white');
-                path.setAttribute('stroke-width', '1');
+                // Create more vibrant colors with gradients
+                const hue = (index * (360 / numItems) + 30) % 360;
+                path.setAttribute('fill', `hsl(${hue}, 85%, 55%)`);
+                path.setAttribute('stroke', `hsl(${hue}, 90%, 70%)`);
+                path.setAttribute('stroke-width', '2');
+
+                // Add gradient effect
+                const gradientId = `gradient${index}`;
+                const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+                gradient.setAttribute('id', gradientId);
+                gradient.setAttribute('cx', '50%');
+                gradient.setAttribute('cy', '30%');
+                gradient.setAttribute('r', '70%');
+
+                const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+                stop1.setAttribute('offset', '0%');
+                stop1.setAttribute('stop-color', `hsl(${hue}, 90%, 70%)`);
+                const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+                stop2.setAttribute('offset', '100%');
+                stop2.setAttribute('stop-color', `hsl(${hue}, 85%, 45%)`);
+
+                gradient.appendChild(stop1);
+                gradient.appendChild(stop2);
+                wheel.appendChild(gradient);
+
+                path.setAttribute('fill', `url(#${gradientId})`);
 
                 const textAngle = startAngle + (endAngle - startAngle) / 2;
                 const textX = centerX + (radius * 0.7) * Math.cos(textAngle);
@@ -392,6 +606,27 @@ Pasta</textarea>
                 wheel.appendChild(path);
                 wheel.appendChild(text);
             });
+
+            // Add center circle for premium look
+            const centerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            centerCircle.setAttribute('cx', '150');
+            centerCircle.setAttribute('cy', '150');
+            centerCircle.setAttribute('r', '25');
+            centerCircle.setAttribute('fill', 'rgba(255, 255, 255, 0.1)');
+            centerCircle.setAttribute('stroke', 'rgba(255, 255, 255, 0.3)');
+            centerCircle.setAttribute('stroke-width', '2');
+            wheel.appendChild(centerCircle);
+
+            // Add center text
+            const centerText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            centerText.setAttribute('x', '150');
+            centerText.setAttribute('y', '155');
+            centerText.setAttribute('text-anchor', 'middle');
+            centerText.setAttribute('fill', 'white');
+            centerText.setAttribute('font-size', '12');
+            centerText.setAttribute('font-weight', 'bold');
+            centerText.textContent = 'SPIN';
+            wheel.appendChild(centerText);
         }
 
         function spinWheel() {
@@ -399,19 +634,53 @@ Pasta</textarea>
 
             const spinBtn = document.getElementById('spinBtn');
             const result = document.getElementById('result');
+            const wheel = document.getElementById('wheel');
 
             spinBtn.disabled = true;
             result.textContent = '';
 
+            // Add spinning class for animation
+            wheel.classList.add('spinning');
+
             // Random spin: multiple full rotations + random angle
-            const spins = Math.random() * 5 + 5; // 5-10 full spins
+            const spins = Math.random() * 8 + 8; // 8-16 full spins for more excitement
             const randomAngle = Math.random() * 360;
             const totalRotation = spins * 360 + randomAngle;
 
-            currentRotation += totalRotation;
-            wheel.style.transform = `rotate(${currentRotation}deg)`;
+            // Calculate start and end rotation
+            const startRotation = currentRotation;
+            const endRotation = startRotation + totalRotation;
+            currentRotation = endRotation;
 
-            // After animation, determine winner
+            // Animate the wheel using JavaScript
+            const startTime = Date.now();
+            const duration = 4000; // 4 seconds
+
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Use easing function for smooth animation
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const currentAngle = startRotation + (totalRotation * easeOut);
+
+                // Add subtle vibration effect during spinning
+                const vibration = Math.sin(elapsed * 0.05) * 0.5; // Small vibration
+
+                wheel.style.transform = `rotate(${currentAngle}deg) translateX(${vibration}px)`;
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // Animation complete - remove vibration
+                    wheel.classList.remove('spinning');
+                    wheel.style.transform = `rotate(${currentRotation}deg)`;
+                }
+            }
+
+            requestAnimationFrame(animate);
+
+            // After animation, determine winner and add effects
             setTimeout(() => {
                 // Pointer is at top (270 degrees in SVG coordinates: 0=right, 90=down, 180=left, 270=up)
                 const rotation = currentRotation % 360;
@@ -419,9 +688,49 @@ Pasta</textarea>
                 const normalizedAngle = (pointerAngle - rotation + 360) % 360;
                 const segmentAngle = 360 / items.length;
                 const winningIndex = Math.floor(normalizedAngle / segmentAngle);
-                result.textContent = `Selected: ${items[winningIndex]}`;
+                const winner = items[winningIndex];
+
+                result.textContent = `🎉 ${winner} 🎉`;
+
+                // Add confetti effect
+                createConfetti();
+
+                // Add winner highlight animation
+                result.style.animation = 'none';
+                setTimeout(() => {
+                    result.style.animation = 'resultGlow 0.5s ease-out';
+                }, 10);
+
+                // Highlight the winning pointer
+                const pointer = document.querySelector('.pointer');
+                pointer.style.animation = 'none';
+                setTimeout(() => {
+                    pointer.style.animation = 'pointerGlow 1.5s ease-in-out infinite alternate, pointerWin 0.8s ease-out';
+                }, 10);
+
                 spinBtn.disabled = false;
-            }, 3000);
+            }, 4000); // Increased to 4 seconds to match new transition duration
+        }
+
+        function createConfetti() {
+            const wheelResult = document.querySelector('.wheel-result');
+            const confettiCount = 50;
+
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                confetti.style.setProperty('--random-x', (Math.random() - 0.5) * 200 + 'px');
+                wheelResult.appendChild(confetti);
+
+                // Remove confetti after animation
+                setTimeout(() => {
+                    if (confetti.parentNode) {
+                        confetti.parentNode.removeChild(confetti);
+                    }
+                }, 3000);
+            }
         }
 
         // Initialize with sample items
