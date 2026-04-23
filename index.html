@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="description" content="Free calculators and utility tools including loan calculator, discount calculator, exchange rate converter, weather service, and movie recommendations. All in one convenient hub." />
+  <meta name="description"
+    content="Free calculators and utility tools including loan calculator, discount calculator, exchange rate converter, weather service, movie recommendations, and QR code generator. All in one convenient hub." />
   <title>Calculator Hub - Financial & Utility Tools</title>
   <style>
     :root {
@@ -106,7 +107,7 @@
 
     .service-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 16px;
       width: min(1100px, 100%);
     }
@@ -175,7 +176,7 @@
 
     @media (max-width: 980px) {
       .service-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       }
     }
 
@@ -210,7 +211,8 @@
       <div class="hero-head">
 
         <h1>Choose Your Service</h1>
-        <p>Access powerful calculators and utility tools. From financial planning to weather forecasts, get everything you need in one convenient hub.</p>
+        <p>Access powerful calculators and utility tools. From financial planning to weather forecasts, get everything
+          you need in one convenient hub.</p>
       </div>
 
       <div class="service-grid">
@@ -264,6 +266,15 @@
           <h3>Weather Service</h3>
           <p>Check current weather conditions and forecasts. Get detailed weather information for any location around
             the world.
+          </p>
+        </a>
+
+        <a class="service-card" href="qr.html">
+          <div class="service-tag">Active</div>
+          <div class="service-icon">📱</div>
+          <h3>QR Code Generator</h3>
+          <p>Create custom QR codes with text, colors, shapes, and logos. Generate professional QR codes for any
+            content.
           </p>
         </a>
 

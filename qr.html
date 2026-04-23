@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>QR Code Generator</title>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --bg-soft: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --text: #ecf2ff;
+            --muted: #9fb0d0;
+            --accent: #6ea8fe;
+            --accent-2: #8b5cf6;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #fb7185;
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+            --radius: 24px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(110, 168, 254, .22), transparent 28%),
+                radial-gradient(circle at top right, rgba(139, 92, 246, .18), transparent 25%),
+                linear-gradient(180deg, #09101d 0%, #0b1020 45%, #050814 100%);
+            color: var(--text);
+        }
+
+        body {
+            padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+        }
+
+        .glow {
+            position: fixed;
+            width: 320px;
+            height: 320px;
+            border-radius: 999px;
+            filter: blur(80px);
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow.one {
+            top: 0;
+            left: -80px;
+            background: #3b82f6;
+        }
+
+        .glow.two {
+            right: -80px;
+            bottom: 0;
+            background: #7c3aed;
+        }
+
+        .app {
+            position: relative;
+            z-index: 1;
+            width: min(1000px, 100%);
+            margin: 0 auto;
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .03));
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .back-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .text-button {
+            min-height: 44px;
+            padding: 0 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .brand h1 {
+            margin: 0 0 8px;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            border-color: var(--accent);
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: var(--muted);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .color-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .color-input input[type="color"] {
+            width: 45px;
+            height: 45px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .color-input span {
+            font-size: 0.85rem;
+            color: var(--muted);
+            font-family: monospace;
+        }
+
+        .color-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: end;
+        }
+
+        .color-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .color-label {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.85rem;
+        }
+
+        .file-input {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .file-input input[type="file"] {
+            flex: 1;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-bottom: 24px;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(110, 168, 254, .3);
+        }
+
+        .qr-result {
+            text-align: center;
+            background: rgba(0, 0, 0, .2);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .qr-canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            margin: 20px 0;
+            background: white;
+            padding: 20px;
+            display: inline-block;
+        }
+
+        .download-btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: 1px solid var(--accent);
+            background: rgba(110, 168, 254, .1);
+            color: var(--accent);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 16px;
+        }
+
+        .download-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .color-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glow one"></div>
+    <div class="glow two"></div>
+
+    <main class="app">
+        <section class="card">
+            <div class="back-row">
+                <a href="index.html" class="text-button">← Back to Services</a>
+            </div>
+
+            <div class="brand">
+                <h1>📱 QR Code Generator</h1>
+                <p>Create custom QR codes with text, colors, shapes, and logos</p>
+                <p style="font-size: 0.9rem; margin-top: 8px; opacity: 0.8;">Enter your content, customize appearance,
+                    and download your QR code instantly</p>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label class="form-label">Text/Content</label>
+                    <textarea id="qrText" class="form-textarea" placeholder="Enter text, URL, or any content to encode in the QR code
+
+Example: https://github.com/virakyuthpk">https://github.com/virakyuthpk</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Format</label>
+                    <select id="qrFormat" class="form-select">
+                        <option value="png">PNG</option>
+                        <option value="svg">SVG</option>
+                        <option value="base64">Base64</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">QR Color</label>
+                    <div class="color-input">
+                        <input type="color" id="qrColor" value="#000000">
+                        <span id="colorValue">#000000</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Background Color</label>
+                    <div class="color-input">
+                        <input type="color" id="bgColor" value="#ffffff">
+                        <span id="bgColorValue">#ffffff</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Size</label>
+                    <input type="number" id="qrSize" class="form-input" placeholder="150" min="50" value="300">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Margin</label>
+                    <input type="number" id="qrMargin" class="form-input" placeholder="4" min="0" value="4">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Shape</label>
+                    <select id="qrShape" class="form-select">
+                        <option value="square">Square</option>
+                        <option value="rounded">Rounded</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Error Correction</label>
+                    <select id="errorCorrection" class="form-select">
+                        <option value="L">L - Low</option>
+                        <option value="M">M - Medium</option>
+                        <option value="Q">Q - Quality</option>
+                        <option value="H">H - High</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Finder Color</label>
+                    <div class="color-input">
+                        <input type="color" id="finderColor" value="#000000">
+                        <span id="finderColorValue">#000000</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Dot Style</label>
+                    <select id="dotStyle" class="form-select">
+                        <option value="square">Square</option>
+                        <option value="dot">Dot</option>
+                        <option value="rounded">Rounded</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Finder Style</label>
+                    <select id="finderStyle" class="form-select">
+                        <option value="square">Square</option>
+                        <option value="rounded">Rounded</option>
+                        <option value="circle">Circle</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Finder Dot Style</label>
+                    <select id="finderDotStyle" class="form-select">
+                        <option value="square">Square</option>
+                        <option value="rounded">Rounded</option>
+                        <option value="dot">Dot</option>
+                    </select>
+                </div>
+
+                <div class="form-group full-width">
+                    <label class="form-label">Center Image URL</label>
+                    <input type="url" id="centerImageUrl" class="form-input" placeholder="https://example.com/logo.png">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Center Image Ratio</label>
+                    <input type="number" id="centerImageSizeRatio" class="form-input" placeholder="0.3" min="0.0"
+                        max="1.0" step="0.05" value="0.3">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Caption</label>
+                    <input type="text" id="captionText" class="form-input" placeholder="Caption text">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Caption Font Color</label>
+                    <div class="color-input">
+                        <input type="color" id="captionFontColor" value="#000000">
+                        <span id="captionFontColorValue">#000000</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Caption Font Size</label>
+                    <input type="number" id="captionFontSize" class="form-input" placeholder="10" min="6" max="36"
+                        value="12">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Caption Font Family</label>
+                    <input type="text" id="captionFontFamily" class="form-input" placeholder="sans-serif"
+                        value="sans-serif">
+                </div>
+            </div>
+
+            <button id="generateBtn" type="button" class="generate-btn">Generate QR Code</button>
+
+            <div id="errorMessage" class="error-message hidden"></div>
+
+            <div id="qrResult" class="qr-result hidden">
+                <h3>Your QR Code</h3>
+                <canvas id="qrCanvas" class="qr-canvas"></canvas>
+                <br>
+                <button id="downloadBtn" type="button" class="download-btn">Download QR Code</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const generateBtn = document.getElementById('generateBtn');
+            const qrResult = document.getElementById('qrResult');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const errorMessage = document.getElementById('errorMessage');
+            const qrColorInput = document.getElementById('qrColor');
+            const bgColorInput = document.getElementById('bgColor');
+            const finderColorInput = document.getElementById('finderColor');
+            const captionFontColorInput = document.getElementById('captionFontColor');
+            const colorValue = document.getElementById('colorValue');
+            const bgColorValue = document.getElementById('bgColorValue');
+            const finderColorValue = document.getElementById('finderColorValue');
+            const captionFontColorValue = document.getElementById('captionFontColorValue');
+
+            // Update color value displays
+            qrColorInput.addEventListener('input', function () {
+                colorValue.textContent = this.value;
+            });
+            bgColorInput.addEventListener('input', function () {
+                bgColorValue.textContent = this.value;
+            });
+            finderColorInput.addEventListener('input', function () {
+                finderColorValue.textContent = this.value;
+            });
+            captionFontColorInput.addEventListener('input', function () {
+                captionFontColorValue.textContent = this.value;
+            });
+
+            generateBtn.addEventListener('click', generateQRCode);
+            downloadBtn.addEventListener('click', downloadQRCode);
+
+            function buildQuickChartUrl(params) {
+                const query = new URLSearchParams();
+                Object.keys(params).forEach(key => {
+                    if (params[key] !== undefined && params[key] !== '' && params[key] !== null) {
+                        query.append(key, params[key]);
+                    }
+                });
+                return `https://quickchart.io/qr?${query.toString()}`;
+            }
+
+            function normalizeHex(hex) {
+                return hex.replace('#', '');
+            }
+
+            function loadQuickChartImage(url, format, onLoad, onError) {
+                if (format === 'base64') {
+                    fetch(url)
+                        .then(response => response.text())
+                        .then(base64 => {
+                            const trimmed = base64.trim();
+                            const src = trimmed.startsWith('data:') ? trimmed : `data:image/png;base64,${trimmed}`;
+                            const img = new Image();
+                            img.crossOrigin = 'anonymous';
+                            img.onload = () => onLoad(img);
+                            img.onerror = onError;
+                            img.src = src;
+                        })
+                        .catch(onError);
+                } else {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = () => onLoad(img);
+                    img.onerror = onError;
+                    img.src = url;
+                }
+            }
+
+            function generateQRCode() {
+                const text = document.getElementById('qrText').value.trim();
+                const format = document.getElementById('qrFormat').value;
+                const size = document.getElementById('qrSize').value || '300';
+                const margin = document.getElementById('qrMargin').value || '4';
+                const qrColor = normalizeHex(document.getElementById('qrColor').value);
+                const bgColor = normalizeHex(document.getElementById('bgColor').value);
+                const finderColor = normalizeHex(document.getElementById('finderColor').value);
+                const dotStyle = document.getElementById('dotStyle').value;
+                const finderStyle = document.getElementById('finderStyle').value;
+                const finderDotStyle = document.getElementById('finderDotStyle').value;
+                const errorCorrection = document.getElementById('errorCorrection').value;
+                const centerImageUrl = document.getElementById('centerImageUrl').value.trim();
+                const centerImageSizeRatio = document.getElementById('centerImageSizeRatio').value || '0.3';
+                const caption = document.getElementById('captionText').value.trim();
+                const captionFontFamily = document.getElementById('captionFontFamily').value.trim() || 'sans-serif';
+                const captionFontSize = document.getElementById('captionFontSize').value || '10';
+                const captionFontColor = normalizeHex(document.getElementById('captionFontColor').value);
+                const shape = document.getElementById('qrShape').value;
+
+                if (!text) {
+                    showError('Please enter text or content to encode');
+                    return;
+                }
+
+                hideError();
+                qrResult.classList.add('hidden');
+
+                const params = {
+                    text,
+                    format,
+                    size,
+                    margin,
+                    dark: qrColor,
+                    light: bgColor,
+                    finderColor,
+                    dotStyle,
+                    finderStyle,
+                    finderDotStyle,
+                    ecLevel: errorCorrection,
+                    centerImageUrl: centerImageUrl || undefined,
+                    centerImageSizeRatio: centerImageUrl ? centerImageSizeRatio : undefined,
+                    caption: caption || undefined,
+                    captionFontFamily: caption ? captionFontFamily : undefined,
+                    captionFontSize: caption ? captionFontSize : undefined,
+                    captionFontColor: caption ? captionFontColor : undefined
+                };
+
+                const imageUrl = buildQuickChartUrl(params);
+                loadQuickChartImage(imageUrl, format, function (img) {
+                    const displayCanvas = document.getElementById('qrCanvas');
+                    displayCanvas.width = img.width;
+                    displayCanvas.height = img.height;
+                    displayCanvas.style.borderRadius = shape === 'rounded' ? '20px' : '12px';
+
+                    const ctx = displayCanvas.getContext('2d');
+                    ctx.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
+                    ctx.drawImage(img, 0, 0);
+
+                    qrResult.classList.remove('hidden');
+                    qrResult.scrollIntoView({ behavior: 'smooth' });
+                }, function () {
+                    showError('Failed to load QR code image. Please try again.');
+                });
+            }
+
+            function downloadQRCode() {
+                const displayCanvas = document.getElementById('qrCanvas');
+                const link = document.createElement('a');
+                link.download = 'qrcode.png';
+                link.href = displayCanvas.toDataURL('image/png');
+                link.click();
+            }
+
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.classList.remove('hidden');
+                qrResult.classList.add('hidden');
+            }
+
+            function hideError() {
+                errorMessage.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+
+</html>
