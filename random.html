@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Random Number Generator</title>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --bg-soft: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --text: #ecf2ff;
+            --muted: #9fb0d0;
+            --accent: #6ea8fe;
+            --accent-2: #8b5cf6;
+            --success: #34d399;
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+            --radius: 24px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(110, 168, 254, .22), transparent 28%),
+                radial-gradient(circle at top right, rgba(139, 92, 246, .18), transparent 25%),
+                linear-gradient(180deg, #09101d 0%, #0b1020 45%, #050814 100%);
+            color: var(--text);
+        }
+
+        body {
+            padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+        }
+
+        .glow {
+            position: fixed;
+            width: 320px;
+            height: 320px;
+            border-radius: 999px;
+            filter: blur(80px);
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow.one {
+            top: 0;
+            left: -80px;
+            background: #3b82f6;
+        }
+
+        .glow.two {
+            right: -80px;
+            bottom: 0;
+            background: #7c3aed;
+        }
+
+        .app {
+            position: relative;
+            z-index: 1;
+            width: min(1000px, 100%);
+            margin: 0 auto;
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .03));
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .back-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .text-button {
+            min-height: 44px;
+            padding: 0 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .brand h1 {
+            margin: 0 0 8px;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .form-input,
+        .form-select {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            border-color: var(--accent);
+        }
+
+        .form-input::placeholder {
+            color: var(--muted);
+        }
+
+        .generate-btn,
+        .copy-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .generate-btn:hover,
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(110, 168, 254, .3);
+        }
+
+        .output-card {
+            background: rgba(0, 0, 0, .2);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 16px;
+            min-height: 60px;
+            color: var(--text);
+            font-size: 1rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glow one"></div>
+    <div class="glow two"></div>
+
+    <main class="app">
+        <section class="card">
+            <div class="back-row">
+                <a href="index.html" class="text-button">← Back to Services</a>
+            </div>
+
+            <div class="brand">
+                <h1>🎲 Random Number Generator</h1>
+                <p>Generate random numbers quickly with minimum, maximum, and count settings.</p>
+                <p style="font-size: 0.9rem; margin-top: 8px; opacity: 0.8;">Choose if duplicates are allowed, then
+                    generate secure random values.</p>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="minValue">Minimum Value</label>
+                    <input id="minValue" class="form-input" type="number" value="1" step="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="maxValue">Maximum Value</label>
+                    <input id="maxValue" class="form-input" type="number" value="100" step="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="countValue">Count</label>
+                    <input id="countValue" class="form-input" type="number" value="1" min="1" max="20" step="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="allowDuplicates">Allow Duplicates</label>
+                    <select id="allowDuplicates" class="form-select">
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+            </div>
+
+            <button id="generateBtn" type="button" class="generate-btn">Generate Numbers</button>
+
+            <div id="output" class="output-card hidden"></div>
+            <button id="copyBtn" type="button" class="copy-btn hidden" style="margin-top: 12px;">Copy Numbers</button>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const minValue = document.getElementById('minValue');
+            const maxValue = document.getElementById('maxValue');
+            const countValue = document.getElementById('countValue');
+            const allowDuplicates = document.getElementById('allowDuplicates');
+            const output = document.getElementById('output');
+            const generateBtn = document.getElementById('generateBtn');
+            const copyBtn = document.getElementById('copyBtn');
+
+            function getRandomInt(min, max) {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
+            function generateNumbers() {
+                const min = Math.ceil(parseInt(minValue.value, 10) || 1);
+                const max = Math.floor(parseInt(maxValue.value, 10) || 100);
+                const count = Math.max(1, Math.min(20, parseInt(countValue.value, 10) || 1));
+                const duplicates = allowDuplicates.value === 'yes';
+
+                if (min > max) {
+                    alert('Minimum value must be less than or equal to maximum value.');
+                    return;
+                }
+
+                const numbers = [];
+                const available = [];
+                for (let i = min; i <= max; i++) {
+                    available.push(i);
+                }
+
+                for (let i = 0; i < count; i++) {
+                    if (!duplicates && available.length === 0) {
+                        alert('Not enough unique numbers in the selected range.');
+                        return;
+                    }
+                    const index = getRandomInt(0, available.length - 1);
+                    numbers.push(available[index]);
+                    if (!duplicates) available.splice(index, 1);
+                }
+
+                output.textContent = numbers.join(', ');
+                output.classList.remove('hidden');
+                copyBtn.classList.remove('hidden');
+            }
+
+            generateBtn.addEventListener('click', generateNumbers);
+            copyBtn.addEventListener('click', function () {
+                navigator.clipboard.writeText(output.textContent).then(() => {
+                    copyBtn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        copyBtn.textContent = 'Copy Numbers';
+                    }, 1200);
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

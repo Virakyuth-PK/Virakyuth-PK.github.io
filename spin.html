@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Spin Wheel Selector</title>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --bg-soft: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --text: #ecf2ff;
+            --muted: #9fb0d0;
+            --accent: #6ea8fe;
+            --accent-2: #8b5cf6;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #fb7185;
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+            --radius: 24px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(110, 168, 254, .22), transparent 28%),
+                radial-gradient(circle at top right, rgba(139, 92, 246, .18), transparent 25%),
+                linear-gradient(180deg, #09101d 0%, #0b1020 45%, #050814 100%);
+            color: var(--text);
+        }
+
+        body {
+            padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+        }
+
+        .glow {
+            position: fixed;
+            width: 320px;
+            height: 320px;
+            border-radius: 999px;
+            filter: blur(80px);
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow.one {
+            top: 0;
+            left: -80px;
+            background: #3b82f6;
+        }
+
+        .glow.two {
+            right: -80px;
+            bottom: 0;
+            background: #7c3aed;
+        }
+
+        .app {
+            position: relative;
+            z-index: 1;
+            width: min(1000px, 100%);
+            margin: 0 auto;
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .03));
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .back-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .text-button {
+            min-height: 44px;
+            padding: 0 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .brand h1 {
+            margin: 0 0 8px;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            border-color: var(--accent);
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: var(--muted);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-bottom: 24px;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(110, 168, 254, .3);
+        }
+
+        .generate-btn:disabled {
+            background: rgba(255, 255, 255, .12);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .wheel-result {
+            text-align: center;
+            background: rgba(0, 0, 0, .2);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 20px;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            transition: transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .pointer {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 20px solid var(--accent);
+            z-index: 10;
+        }
+
+        .result-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--success);
+            margin-top: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .wheel-container {
+                width: 250px;
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glow one"></div>
+    <div class="glow two"></div>
+
+    <main class="app">
+        <section class="card">
+            <div class="back-row">
+                <a href="index.html" class="text-button">← Back to Services</a>
+            </div>
+
+            <div class="brand">
+                <h1>🎡 Spin Wheel Selector</h1>
+                <p>Enter your items and spin the wheel to make a random selection</p>
+                <p style="font-size: 0.9rem; margin-top: 8px; opacity: 0.8;">Add your choices below and let chance
+                    decide for you</p>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label class="form-label">Items to Choose From</label>
+                    <textarea id="items" class="form-textarea" placeholder="Enter each item on a new line
+
+Example:
+Pizza
+Burger
+Salad
+Sushi
+Pasta">Pizza
+Burger
+Salad
+Sushi
+Pasta</textarea>
+                </div>
+            </div>
+
+            <button class="generate-btn" onclick="updateWheel()">Update Wheel</button>
+
+            <div class="wheel-result">
+                <div class="wheel-container">
+                    <div class="pointer"></div>
+                    <svg class="wheel" id="wheel" viewBox="0 0 300 300">
+                        <!-- Segments will be added here -->
+                    </svg>
+                </div>
+                <button class="generate-btn" id="spinBtn" onclick="spinWheel()" style="margin-bottom: 0;">Spin the
+                    Wheel!</button>
+                <div class="result-text" id="result"></div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let items = [];
+        let currentRotation = 0;
+
+        function updateWheel() {
+            const textarea = document.getElementById('items');
+            const wheel = document.getElementById('wheel');
+            const spinBtn = document.getElementById('spinBtn');
+
+            items = textarea.value.split('\n').map(item => item.trim()).filter(item => item.length > 0);
+
+            if (items.length === 0) {
+                alert('Please enter at least one item.');
+                spinBtn.disabled = true;
+                return;
+            }
+
+            spinBtn.disabled = false;
+
+            // Clear existing segments
+            while (wheel.firstChild) {
+                wheel.removeChild(wheel.firstChild);
+            }
+
+            const numItems = items.length;
+            const anglePerSegment = 360 / numItems;
+            const radius = 150;
+            const centerX = 150;
+            const centerY = 150;
+
+            items.forEach((item, index) => {
+                const startAngle = (index * anglePerSegment) * (Math.PI / 180);
+                const endAngle = ((index + 1) * anglePerSegment) * (Math.PI / 180);
+
+                const x1 = centerX + radius * Math.cos(startAngle);
+                const y1 = centerY + radius * Math.sin(startAngle);
+                const x2 = centerX + radius * Math.cos(endAngle);
+                const y2 = centerY + radius * Math.sin(endAngle);
+
+                const largeArcFlag = anglePerSegment > 180 ? 1 : 0;
+
+                const pathData = [
+                    `M ${centerX} ${centerY}`,
+                    `L ${x1} ${y1}`,
+                    `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                    'Z'
+                ].join(' ');
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', pathData);
+                path.setAttribute('fill', `hsl(${index * (360 / numItems)}, 70%, 50%)`);
+                path.setAttribute('stroke', 'white');
+                path.setAttribute('stroke-width', '1');
+
+                const textAngle = startAngle + (endAngle - startAngle) / 2;
+                const textX = centerX + (radius * 0.7) * Math.cos(textAngle);
+                const textY = centerY + (radius * 0.7) * Math.sin(textAngle);
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', textX);
+                text.setAttribute('y', textY);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('dominant-baseline', 'middle');
+                text.setAttribute('fill', 'white');
+                text.setAttribute('font-size', '12');
+                text.setAttribute('font-weight', 'bold');
+                text.textContent = item.length > 10 ? item.substring(0, 10) + '...' : item;
+
+                wheel.appendChild(path);
+                wheel.appendChild(text);
+            });
+        }
+
+        function spinWheel() {
+            if (items.length === 0) return;
+
+            const spinBtn = document.getElementById('spinBtn');
+            const result = document.getElementById('result');
+
+            spinBtn.disabled = true;
+            result.textContent = '';
+
+            // Random spin: multiple full rotations + random angle
+            const spins = Math.random() * 5 + 5; // 5-10 full spins
+            const randomAngle = Math.random() * 360;
+            const totalRotation = spins * 360 + randomAngle;
+
+            currentRotation += totalRotation;
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+            // After animation, determine winner
+            setTimeout(() => {
+                // Pointer is at top (270 degrees in SVG coordinates: 0=right, 90=down, 180=left, 270=up)
+                const rotation = currentRotation % 360;
+                const pointerAngle = 270; // top position
+                const normalizedAngle = (pointerAngle - rotation + 360) % 360;
+                const segmentAngle = 360 / items.length;
+                const winningIndex = Math.floor(normalizedAngle / segmentAngle);
+                result.textContent = `Selected: ${items[winningIndex]}`;
+                spinBtn.disabled = false;
+            }, 3000);
+        }
+
+        // Initialize with sample items
+        updateWheel();
+    </script>
+</body>
+
+</html>

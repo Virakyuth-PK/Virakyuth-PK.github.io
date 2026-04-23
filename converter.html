@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Unit Converter</title>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --bg-soft: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --text: #ecf2ff;
+            --muted: #9fb0d0;
+            --accent: #6ea8fe;
+            --accent-2: #8b5cf6;
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+            --radius: 24px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(110, 168, 254, .22), transparent 28%),
+                radial-gradient(circle at top right, rgba(139, 92, 246, .18), transparent 25%),
+                linear-gradient(180deg, #09101d 0%, #0b1020 45%, #050814 100%);
+            color: var(--text);
+        }
+
+        body {
+            padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+        }
+
+        .glow {
+            position: fixed;
+            width: 320px;
+            height: 320px;
+            border-radius: 999px;
+            filter: blur(80px);
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow.one {
+            top: 0;
+            left: -80px;
+            background: #3b82f6;
+        }
+
+        .glow.two {
+            right: -80px;
+            bottom: 0;
+            background: #7c3aed;
+        }
+
+        .app {
+            position: relative;
+            z-index: 1;
+            width: min(1000px, 100%);
+            margin: 0 auto;
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .03));
+            border: 1px solid rgba(255, 255, 255, .12);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .back-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .text-button {
+            min-height: 44px;
+            padding: 0 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .brand h1 {
+            margin: 0 0 8px;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .form-input,
+        .form-select {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            border-color: var(--accent);
+        }
+
+        .form-input::placeholder {
+            color: var(--muted);
+        }
+
+        .convert-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-bottom: 24px;
+        }
+
+        .convert-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(110, 168, 254, .3);
+        }
+
+        .result-card {
+            background: rgba(0, 0, 0, .2);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .result-value {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .result-label {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .result-output {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+
+            .form-grid,
+            .result-output {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glow one"></div>
+    <div class="glow two"></div>
+
+    <main class="app">
+        <section class="card">
+            <div class="back-row">
+                <a href="index.html" class="text-button">← Back to Services</a>
+            </div>
+
+            <div class="brand">
+                <h1>🧾 Unit Converter</h1>
+                <p>Convert units for length, weight, and temperature with one simple tool.</p>
+                <p style="font-size: 0.9rem; margin-top: 8px; opacity: 0.8;">Select a category, enter a value, and
+                    convert between units instantly.</p>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="category">Category</label>
+                    <select id="category" class="form-select">
+                        <option value="length">Length</option>
+                        <option value="weight">Weight</option>
+                        <option value="temperature">Temperature</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="fromUnit">From</label>
+                    <select id="fromUnit" class="form-select"></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="toUnit">To</label>
+                    <select id="toUnit" class="form-select"></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="valueInput">Value</label>
+                    <input id="valueInput" class="form-input" type="number" placeholder="Enter value" value="1">
+                </div>
+            </div>
+
+            <button id="convertBtn" type="button" class="convert-btn">Convert</button>
+
+            <div id="output" class="result-output hidden">
+                <div class="result-card">
+                    <div class="result-value" id="resultValue">0</div>
+                    <div class="result-label">Converted Value</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-value" id="resultLabel">—</div>
+                    <div class="result-label">Units</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const categories = {
+                length: {
+                    units: {
+                        meters: 1,
+                        kilometers: 0.001,
+                        miles: 0.000621371,
+                        yards: 1.09361,
+                        feet: 3.28084,
+                        inches: 39.3701
+                    },
+                    label: 'meters'
+                },
+                weight: {
+                    units: {
+                        kilograms: 1,
+                        grams: 1000,
+                        pounds: 2.20462,
+                        ounces: 35.274
+                    },
+                    label: 'kilograms'
+                },
+                temperature: {
+                    units: {
+                        celsius: 'celsius',
+                        fahrenheit: 'fahrenheit',
+                        kelvin: 'kelvin'
+                    },
+                    label: 'celsius'
+                }
+            };
+
+            const categorySelect = document.getElementById('category');
+            const fromUnit = document.getElementById('fromUnit');
+            const toUnit = document.getElementById('toUnit');
+            const valueInput = document.getElementById('valueInput');
+            const convertBtn = document.getElementById('convertBtn');
+            const output = document.getElementById('output');
+            const resultValue = document.getElementById('resultValue');
+            const resultLabel = document.getElementById('resultLabel');
+
+            function populateUnits() {
+                const category = categorySelect.value;
+                const units = Object.keys(categories[category].units);
+                fromUnit.innerHTML = '';
+                toUnit.innerHTML = '';
+                units.forEach(u => {
+                    const option1 = document.createElement('option');
+                    option1.value = u;
+                    option1.textContent = u;
+                    const option2 = option1.cloneNode(true);
+                    fromUnit.appendChild(option1);
+                    toUnit.appendChild(option2);
+                });
+                fromUnit.value = units[0];
+                toUnit.value = units[1] || units[0];
+            }
+
+            function convertTemperature(value, from, to) {
+                let celsius;
+                if (from === 'celsius') celsius = value;
+                if (from === 'fahrenheit') celsius = (value - 32) * 5 / 9;
+                if (from === 'kelvin') celsius = value - 273.15;
+                if (to === 'celsius') return celsius;
+                if (to === 'fahrenheit') return celsius * 9 / 5 + 32;
+                if (to === 'kelvin') return celsius + 273.15;
+            }
+
+            function convertValue() {
+                const category = categorySelect.value;
+                const from = fromUnit.value;
+                const to = toUnit.value;
+                const value = parseFloat(valueInput.value);
+
+                if (isNaN(value)) {
+                    alert('Enter a valid number.');
+                    return;
+                }
+
+                let converted;
+                if (category === 'temperature') {
+                    converted = convertTemperature(value, from, to);
+                } else {
+                    const base = categories[category].units[from];
+                    const target = categories[category].units[to];
+                    converted = value / base * target;
+                }
+
+                resultValue.textContent = converted.toFixed(4);
+                resultLabel.textContent = `${to}`;
+                output.classList.remove('hidden');
+            }
+
+            categorySelect.addEventListener('change', populateUnits);
+            convertBtn.addEventListener('click', convertValue);
+            populateUnits();
+        });
+    </script>
+</body>
+
+</html>

@@ -174,6 +174,98 @@
       pointer-events: none;
     }
 
+    .card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .03));
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .spin-card {
+      display: grid;
+      gap: 18px;
+      justify-items: center;
+      text-align: center;
+      max-width: 980px;
+      margin: 0 auto 28px;
+    }
+
+    .spin-area {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    .spinner {
+      position: relative;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      border: 14px solid rgba(255, 255, 255, .08);
+      background: conic-gradient(#3b82f6 0deg 30deg,
+          #8b5cf6 30deg 60deg,
+          #fb7185 60deg 90deg,
+          #fbbf24 90deg 120deg,
+          #34d399 120deg 150deg,
+          #0ea5e9 150deg 180deg,
+          #a78bfa 180deg 210deg,
+          #fb7185 210deg 240deg,
+          #facc15 240deg 270deg,
+          #22c55e 270deg 300deg,
+          #38bdf8 300deg 330deg,
+          #f472b6 330deg 360deg);
+      transition: transform 4s cubic-bezier(.25, .72, .4, 1);
+    }
+
+    .spinner::after {
+      content: '';
+      position: absolute;
+      inset: 20px;
+      border-radius: 50%;
+      background: rgba(11, 16, 32, .9);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .05);
+    }
+
+    .pointer {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-bottom: 24px solid #ffffff;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .25));
+    }
+
+    .spin-btn {
+      padding: 14px 22px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .spin-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(110, 168, 254, .3);
+    }
+
+    .spin-result {
+      color: var(--text);
+      font-size: 1rem;
+      max-width: 420px;
+    }
+
     @media (max-width: 980px) {
       .service-grid {
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -290,6 +382,41 @@
           </p>
         </a>
 
+        <a class="service-card" href="age.html">
+          <div class="service-tag">Active</div>
+          <div class="service-icon">🎂</div>
+          <h3>Age Calculator</h3>
+          <p>Calculate age in years, months, and days from a birth date. Compare against today or any future date.</p>
+        </a>
+
+        <a class="service-card" href="random.html">
+          <div class="service-tag">Active</div>
+          <div class="service-icon">🎲</div>
+          <h3>Random Number Generator</h3>
+          <p>Generate random values with a custom range, count, and duplicate settings.</p>
+        </a>
+
+        <a class="service-card" href="converter.html">
+          <div class="service-tag">Active</div>
+          <div class="service-icon">🧾</div>
+          <h3>Unit Converter</h3>
+          <p>Convert length, weight, and temperature units instantly with easy category selection.</p>
+        </a>
+
+        <a class="service-card" href="timezone.html">
+          <div class="service-tag">Active</div>
+          <div class="service-icon">🌐</div>
+          <h3>Timezone Clock</h3>
+          <p>View the current time in different world time zones and compare with your local clock.</p>
+        </a>
+
+        <a class="service-card" href="spin.html">
+          <div class="service-tag">Active</div>
+          <div class="service-icon">🎡</div>
+          <h3>Spin Wheel Selector</h3>
+          <p>Add your own items and spin the wheel to make a random selection. Perfect for decisions or fun choices.</p>
+        </a>
+
         <a class="service-card" href="qr.html">
           <div class="service-tag">Active</div>
           <div class="service-icon">📱</div>
@@ -302,6 +429,44 @@
       </div>
     </section>
   </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const services = [
+        { name: 'Movie Service', href: 'movie.html' },
+        { name: 'Loan Calculator', href: 'loan.html' },
+        { name: 'Discount Calculator', href: 'discount.html' },
+        { name: 'Tip Calculator', href: 'tip.html' },
+        { name: 'BMI Calculator', href: 'bmi.html' },
+        { name: 'Password Generator', href: 'password.html' },
+        { name: 'Exchange Rate', href: 'exchange.html' },
+        { name: 'Weather Service', href: 'weather.html' },
+        { name: 'Age Calculator', href: 'age.html' },
+        { name: 'Random Number Generator', href: 'random.html' },
+        { name: 'Unit Converter', href: 'converter.html' },
+        { name: 'Timezone Clock', href: 'timezone.html' },
+        { name: 'QR Code Generator', href: 'qr.html' }
+      ];
+      const spinner = document.getElementById('spinner');
+      const spinButton = document.getElementById('spinButton');
+      const spinResult = document.getElementById('spinResult');
+      const segmentAngle = 360 / services.length;
+      let currentRotation = 0;
+
+      spinButton.addEventListener('click', function () {
+        const selectedIndex = Math.floor(Math.random() * services.length);
+        const targetRotation = 360 * 10 + (selectedIndex * segmentAngle) + segmentAngle / 2;
+        currentRotation = targetRotation;
+        spinner.style.transform = `rotate(${currentRotation}deg)`;
+        spinResult.textContent = `Spinning...`;
+
+        setTimeout(() => {
+          const selected = services[selectedIndex];
+          spinResult.innerHTML = `Selected: <strong><a href="${selected.href}" style="color: #ffffff; text-decoration: underline;">${selected.name}</a></strong>`;
+        }, 4200);
+      });
+    });
+  </script>
 </body>
 
 </html>
