@@ -5,6 +5,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Discount Calculator</title>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'km,en,zh-CN',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript"
+        src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     <style>
         :root {
             --bg: #0b1020;
@@ -221,7 +233,10 @@
 
     <main class="app">
         <div class="calculator-container">
-            <a href="index.html" class="back-button">← Back to Services</a>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <a href="index.html" class="back-button">← Back to Services</a>
+                <div id="google_translate_element"></div>
+            </div>
 
             <h1>💸 Discount Calculator</h1>
             <p class="subtitle">Calculate savings and final prices with ease</p>
