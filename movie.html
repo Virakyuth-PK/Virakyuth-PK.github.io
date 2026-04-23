@@ -777,6 +777,14 @@
       const pathType = type === 'series' ? 'tv' : 'movie';
       frame.src = 'https://vidsrcme.ru/embed/' + pathType + '?imdb=' + imdbId;
       playerTitle.textContent = (type === 'series' ? 'TV Series' : 'Movie') + ' • ' + imdbId + (title ? ' • ' + title : '');
+
+      // Save last played movie to localStorage
+      localStorage.setItem('lastMovie', JSON.stringify({
+        type: type,
+        imdbId: imdbId,
+        title: title || '',
+        timestamp: new Date().toISOString()
+      }));
     }
 
     async function fetchCinemeta(type, imdbId) {
@@ -1063,7 +1071,32 @@
       loadMedia();
     });
 
-    loadMedia();
+    // Load last played movie from localStorage
+    function loadLastMovie() {
+      const lastMovie = localStorage.getItem('lastMovie');
+      if (lastMovie) {
+        try {
+          const movie = JSON.parse(lastMovie);
+          imdbInput.value = movie.imdbId || '';
+          typeSelect.value = movie.type || 'auto';
+          if (movie.imdbId) {
+            loadMedia();
+          }
+        } catch (e) {
+          console.log('Could not load last movie:', e);
+        }
+      }
+    }
+
+    // Load last movie on page load
+    window.addEventListener('DOMContentLoaded', loadLastMovie);
+
+    // Fallback for if already loaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadLastMovie);
+    } else {
+      loadLastMovie();
+    }
   </script>
 </body>
 
