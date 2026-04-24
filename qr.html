@@ -17,6 +17,7 @@
     </script>
     <script type="text/javascript"
         src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         :root {
             --bg: #0b1020;
@@ -309,6 +310,145 @@
             margin-top: 8px;
         }
 
+        .mode-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            border-radius: 12px;
+            padding: 4px;
+            background: rgba(255, 255, 255, .03);
+            width: fit-content;
+        }
+
+        .mode-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: var(--muted);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: white;
+        }
+
+        .batch-info {
+            background: rgba(110, 168, 254, .1);
+            border: 1px solid rgba(110, 168, 254, .3);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+            color: var(--accent);
+        }
+
+        .batch-progress {
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(255, 255, 255, .12);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 24px;
+            display: none;
+        }
+
+        .batch-progress.active {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, .06);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .progress-text {
+            font-size: 0.85rem;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .batch-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, .2);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .08);
+        }
+
+        .batch-result-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 8px;
+            text-align: center;
+            break-inside: avoid;
+        }
+
+        .batch-result-item img,
+        .batch-result-item canvas {
+            max-width: 100px;
+            height: auto;
+            border-radius: 4px;
+        }
+
+        .batch-result-label {
+            font-size: 0.7rem;
+            color: var(--muted);
+            word-break: break-all;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .batch-download-btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, var(--success), #10b981);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 16px;
+            width: 100%;
+        }
+
+        .batch-download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(52, 211, 153, .3);
+        }
+
+        .batch-download-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         @media (max-width: 768px) {
             .form-grid {
                 grid-template-columns: 1fr;
@@ -316,6 +456,10 @@
 
             .color-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .batch-results {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
             }
         }
     </style>
@@ -339,9 +483,18 @@
                     and download your QR code instantly</p>
             </div>
 
+            <div class="mode-toggle">
+                <button class="mode-btn active" data-mode="single">Single Mode</button>
+                <button class="mode-btn" data-mode="batch">Batch Mode</button>
+            </div>
+
+            <div class="batch-info hidden">
+                📝 Enter one QR code value per line. Each line will generate a separate QR code.
+            </div>
+
             <div class="form-grid">
                 <div class="form-group full-width">
-                    <label class="form-label">Text/Content</label>
+                    <label class="form-label" id="qrTextLabel">Text/Content</label>
                     <textarea id="qrText" class="form-textarea" placeholder="Enter text, URL, or any content to encode in the QR code
 
 Example: https://github.com/virakyuthpk">https://github.com/virakyuthpk</textarea>
@@ -482,11 +635,27 @@ Example: https://github.com/virakyuthpk">https://github.com/virakyuthpk</textare
                 <br>
                 <button id="downloadBtn" type="button" class="download-btn">Download QR Code</button>
             </div>
+
+            <div id="batchProgress" class="batch-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Generating QR codes...</div>
+            </div>
+
+            <div id="batchResults" class="hidden">
+                <h3 style="margin-top: 24px; margin-bottom: 16px;">Generated QR Codes</h3>
+                <div id="batchResultsContainer" class="batch-results"></div>
+                <button id="batchDownloadBtn" type="button" class="batch-download-btn">⬇ Download All as ZIP</button>
+            </div>
         </section>
     </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            let currentMode = 'single';
+            let batchQRCodes = [];
+
             const generateBtn = document.getElementById('generateBtn');
             const qrResult = document.getElementById('qrResult');
             const downloadBtn = document.getElementById('downloadBtn');
@@ -499,6 +668,48 @@ Example: https://github.com/virakyuthpk">https://github.com/virakyuthpk</textare
             const bgColorValue = document.getElementById('bgColorValue');
             const finderColorValue = document.getElementById('finderColorValue');
             const captionFontColorValue = document.getElementById('captionFontColorValue');
+            const modeBtns = document.querySelectorAll('.mode-btn');
+            const batchInfo = document.querySelector('.batch-info');
+            const qrTextLabel = document.getElementById('qrTextLabel');
+            const qrText = document.getElementById('qrText');
+            const batchProgress = document.getElementById('batchProgress');
+            const batchResults = document.getElementById('batchResults');
+            const batchDownloadBtn = document.getElementById('batchDownloadBtn');
+
+            // Mode toggle
+            modeBtns.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const mode = this.dataset.mode;
+                    if (mode === currentMode) return;
+
+                    currentMode = mode;
+                    modeBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    batchInfo.classList.toggle('hidden');
+                    batchResults.classList.add('hidden');
+                    batchProgress.classList.remove('active');
+                    qrResult.classList.add('hidden');
+                    hideError();
+
+                    if (mode === 'batch') {
+                        qrTextLabel.textContent = 'Content (one per line)';
+                        qrText.placeholder = `Enter one value per line. Each line will generate a separate QR code.
+
+Example:
+https://github.com/virakyuthpk
+https://google.com
+MyCustomText`;
+                        generateBtn.textContent = 'Generate Batch';
+                    } else {
+                        qrTextLabel.textContent = 'Text/Content';
+                        qrText.placeholder = `Enter text, URL, or any content to encode in the QR code
+
+Example: https://github.com/virakyuthpk`;
+                        generateBtn.textContent = 'Generate QR Code';
+                    }
+                });
+            });
 
             // Update color value displays
             qrColorInput.addEventListener('input', function () {
@@ -514,8 +725,15 @@ Example: https://github.com/virakyuthpk">https://github.com/virakyuthpk</textare
                 captionFontColorValue.textContent = this.value;
             });
 
-            generateBtn.addEventListener('click', generateQRCode);
+            generateBtn.addEventListener('click', () => {
+                if (currentMode === 'batch') {
+                    generateBatchQRCodes();
+                } else {
+                    generateQRCode();
+                }
+            });
             downloadBtn.addEventListener('click', downloadQRCode);
+            batchDownloadBtn.addEventListener('click', downloadBatchAsZip);
 
             function buildQuickChartUrl(params) {
                 const query = new URLSearchParams();
@@ -554,8 +772,7 @@ Example: https://github.com/virakyuthpk">https://github.com/virakyuthpk</textare
                 }
             }
 
-            function generateQRCode() {
-                const text = document.getElementById('qrText').value.trim();
+            function getCommonParams() {
                 const format = document.getElementById('qrFormat').value;
                 const size = document.getElementById('qrSize').value || '300';
                 const margin = document.getElementById('qrMargin').value || '4';
@@ -574,6 +791,164 @@ Example: https://github.com/virakyuthpk">https://github.com/virakyuthpk</textare
                 const captionFontColor = normalizeHex(document.getElementById('captionFontColor').value);
                 const shape = document.getElementById('qrShape').value;
 
+                return {
+                    format, size, margin, qrColor, bgColor, finderColor, dotStyle, finderStyle,
+                    finderDotStyle, errorCorrection, centerImageUrl, centerImageSizeRatio,
+                    caption, captionFontFamily, captionFontSize, captionFontColor, shape
+                };
+            }
+
+            function generateBatchQRCodes() {
+                const textInput = qrText.value.trim();
+                const lines = textInput.split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0);
+
+                if (lines.length === 0) {
+                    showError('Please enter at least one line to generate');
+                    return;
+                }
+
+                hideError();
+                qrResult.classList.add('hidden');
+                batchResults.classList.add('hidden');
+                batchProgress.classList.add('active');
+                batchQRCodes = [];
+
+                const params = getCommonParams();
+                let completed = 0;
+
+                lines.forEach((text, index) => {
+                    const qrParams = {
+                        text,
+                        format: params.format,
+                        size: params.size,
+                        margin: params.margin,
+                        dark: params.qrColor,
+                        light: params.bgColor,
+                        finderColor: params.finderColor,
+                        dotStyle: params.dotStyle,
+                        finderStyle: params.finderStyle,
+                        finderDotStyle: params.finderDotStyle,
+                        ecLevel: params.errorCorrection,
+                        centerImageUrl: params.centerImageUrl || undefined,
+                        centerImageSizeRatio: params.centerImageUrl ? params.centerImageSizeRatio : undefined,
+                        caption: params.caption || undefined,
+                        captionFontFamily: params.caption ? params.captionFontFamily : undefined,
+                        captionFontSize: params.caption ? params.captionFontSize : undefined,
+                        captionFontColor: params.caption ? params.captionFontColor : undefined
+                    };
+
+                    const imageUrl = buildQuickChartUrl(qrParams);
+                    loadQuickChartImage(imageUrl, params.format, function (img) {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+
+                        batchQRCodes.push({
+                            text: text,
+                            canvas: canvas,
+                            dataUrl: canvas.toDataURL('image/png')
+                        });
+
+                        completed++;
+                        updateProgress(completed, lines.length);
+
+                        if (completed === lines.length) {
+                            displayBatchResults(params);
+                        }
+                    }, function () {
+                        showError(`Failed to generate QR code for: ${text}`);
+                    });
+                });
+            }
+
+            function updateProgress(current, total) {
+                const percentage = (current / total) * 100;
+                const progressFill = document.getElementById('progressFill');
+                const progressText = document.getElementById('progressText');
+
+                progressFill.style.width = percentage + '%';
+                progressText.textContent = `Generating: ${current}/${total}`;
+            }
+
+            function displayBatchResults(params) {
+                batchProgress.classList.remove('active');
+                batchResults.classList.remove('hidden');
+
+                const container = document.getElementById('batchResultsContainer');
+                container.innerHTML = '';
+
+                batchQRCodes.forEach((qr, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'batch-result-item';
+
+                    const img = document.createElement('img');
+                    img.src = qr.dataUrl;
+                    img.style.borderRadius = params.shape === 'rounded' ? '8px' : '4px';
+
+                    const label = document.createElement('div');
+                    label.className = 'batch-result-label';
+                    label.textContent = qr.text;
+                    label.title = qr.text;
+
+                    item.appendChild(img);
+                    item.appendChild(label);
+                    container.appendChild(item);
+                });
+
+                batchResults.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            async function downloadBatchAsZip() {
+                if (batchQRCodes.length === 0) {
+                    showError('No QR codes to download');
+                    return;
+                }
+
+                const zip = new JSZip();
+                let fileCount = 1;
+
+                for (const qr of batchQRCodes) {
+                    const dataUrl = qr.dataUrl;
+                    const binaryString = atob(dataUrl.split(',')[1]);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+
+                    const fileName = qr.text
+                        .replace(/[^a-z0-9]/gi, '_')
+                        .substring(0, 50)
+                        .toLowerCase();
+                    const uniqueFileName = `${fileCount}_${fileName || 'qrcode'}.png`;
+                    zip.file(uniqueFileName, bytes);
+                    fileCount++;
+                }
+
+                batchDownloadBtn.disabled = true;
+                batchDownloadBtn.textContent = 'Creating ZIP...';
+
+                try {
+                    const content = await zip.generateAsync({ type: 'blob' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(content);
+                    link.download = `qrcodes_batch_${Date.now()}.zip`;
+                    link.click();
+                } catch (error) {
+                    showError('Failed to create ZIP file: ' + error.message);
+                } finally {
+                    batchDownloadBtn.disabled = false;
+                    batchDownloadBtn.textContent = '⬇ Download All as ZIP';
+                }
+            }
+
+            function generateQRCode() {
+                const text = document.getElementById('qrText').value.trim();
+                const params = getCommonParams();
+
                 if (!text) {
                     showError('Please enter text or content to encode');
                     return;
@@ -582,32 +957,32 @@ Example: https://github.com/virakyuthpk">https://github.com/virakyuthpk</textare
                 hideError();
                 qrResult.classList.add('hidden');
 
-                const params = {
+                const qrParams = {
                     text,
-                    format,
-                    size,
-                    margin,
-                    dark: qrColor,
-                    light: bgColor,
-                    finderColor,
-                    dotStyle,
-                    finderStyle,
-                    finderDotStyle,
-                    ecLevel: errorCorrection,
-                    centerImageUrl: centerImageUrl || undefined,
-                    centerImageSizeRatio: centerImageUrl ? centerImageSizeRatio : undefined,
-                    caption: caption || undefined,
-                    captionFontFamily: caption ? captionFontFamily : undefined,
-                    captionFontSize: caption ? captionFontSize : undefined,
-                    captionFontColor: caption ? captionFontColor : undefined
+                    format: params.format,
+                    size: params.size,
+                    margin: params.margin,
+                    dark: params.qrColor,
+                    light: params.bgColor,
+                    finderColor: params.finderColor,
+                    dotStyle: params.dotStyle,
+                    finderStyle: params.finderStyle,
+                    finderDotStyle: params.finderDotStyle,
+                    ecLevel: params.errorCorrection,
+                    centerImageUrl: params.centerImageUrl || undefined,
+                    centerImageSizeRatio: params.centerImageUrl ? params.centerImageSizeRatio : undefined,
+                    caption: params.caption || undefined,
+                    captionFontFamily: params.caption ? params.captionFontFamily : undefined,
+                    captionFontSize: params.caption ? params.captionFontSize : undefined,
+                    captionFontColor: params.caption ? params.captionFontColor : undefined
                 };
 
-                const imageUrl = buildQuickChartUrl(params);
-                loadQuickChartImage(imageUrl, format, function (img) {
+                const imageUrl = buildQuickChartUrl(qrParams);
+                loadQuickChartImage(imageUrl, params.format, function (img) {
                     const displayCanvas = document.getElementById('qrCanvas');
                     displayCanvas.width = img.width;
                     displayCanvas.height = img.height;
-                    displayCanvas.style.borderRadius = shape === 'rounded' ? '20px' : '12px';
+                    displayCanvas.style.borderRadius = params.shape === 'rounded' ? '20px' : '12px';
 
                     const ctx = displayCanvas.getContext('2d');
                     ctx.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
@@ -632,6 +1007,8 @@ Example: https://github.com/virakyuthpk">https://github.com/virakyuthpk</textare
                 errorMessage.textContent = message;
                 errorMessage.classList.remove('hidden');
                 qrResult.classList.add('hidden');
+                batchResults.classList.add('hidden');
+                batchProgress.classList.remove('active');
             }
 
             function hideError() {
