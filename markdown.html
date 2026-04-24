@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Markdown to HTML</title>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'km,en,zh-CN',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript"
+        src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --card-border: rgba(255, 255, 255, 0.12);
+            --text: #ecf2ff;
+            --muted: #9fb0d0;
+            --accent: #6ea8fe;
+            --accent-2: #8b5cf6;
+            --success: #34d399;
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+            --radius: 24px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(110, 168, 254, .22), transparent 28%),
+                radial-gradient(circle at top right, rgba(139, 92, 246, .18), transparent 25%),
+                linear-gradient(180deg, #09101d 0%, #0b1020 45%, #050814 100%);
+            color: var(--text);
+        }
+
+        body {
+            padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+        }
+
+        .glow {
+            position: fixed;
+            width: 320px;
+            height: 320px;
+            border-radius: 999px;
+            filter: blur(80px);
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow.one {
+            top: 0;
+            left: -80px;
+            background: #3b82f6;
+        }
+
+        .glow.two {
+            right: -80px;
+            bottom: 0;
+            background: #7c3aed;
+        }
+
+        .app {
+            position: relative;
+            z-index: 1;
+            width: min(1000px, 100%);
+            margin: 0 auto;
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .03));
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .back-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .text-button {
+            padding: 0 14px;
+            height: 44px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .brand h1 {
+            margin: 0 0 8px;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        .editor-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .form-textarea {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            font-size: 0.9rem;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            resize: vertical;
+            min-height: 400px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-textarea:focus {
+            border-color: var(--accent);
+        }
+
+        .form-textarea::placeholder {
+            color: var(--muted);
+        }
+
+        .preview {
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, .03);
+            overflow-y: auto;
+            min-height: 400px;
+        }
+
+        .preview h1,
+        .preview h2,
+        .preview h3 {
+            margin-top: 20px;
+            margin-bottom: 12px;
+        }
+
+        .preview h1 {
+            font-size: 2em;
+        }
+
+        .preview h2 {
+            font-size: 1.5em;
+        }
+
+        .preview h3 {
+            font-size: 1.25em;
+        }
+
+        .preview p {
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .preview ul,
+        .preview ol {
+            margin-bottom: 12px;
+            padding-left: 20px;
+        }
+
+        .preview li {
+            margin-bottom: 6px;
+        }
+
+        .preview code {
+            background: rgba(0, 0, 0, .2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+        }
+
+        .preview pre {
+            background: rgba(0, 0, 0, .3);
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 12px;
+        }
+
+        .preview a {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid rgba(255, 255, 255, .12);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, .1);
+        }
+
+        @media (max-width: 768px) {
+            .editor-container {
+                grid-template-columns: 1fr;
+            }
+
+            .form-textarea,
+            .preview {
+                min-height: 300px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glow one"></div>
+    <div class="glow two"></div>
+
+    <main class="app">
+        <section class="card">
+            <div class="back-row">
+                <a href="index.html" class="text-button">← Back to Services</a>
+                <div id="google_translate_element"></div>
+            </div>
+
+            <div class="brand">
+                <h1>📄 Markdown to HTML</h1>
+                <p>Convert Markdown to HTML with live preview</p>
+            </div>
+
+            <div class="editor-container">
+                <div class="form-group">
+                    <label class="form-label">Markdown Input</label>
+                    <textarea id="markdownInput" class="form-textarea" placeholder="# Heading
+## Subheading
+
+**Bold text** and *italic text*
+
+- List item 1
+- List item 2
+
+[Link](https://example.com)
+
+\`\`\`
+code block
+\`\`\`">
+# Welcome to Markdown Converter
+
+This is **bold** text and this is *italic* text.
+
+## Features
+- Live preview
+- Easy conversion
+- Copy HTML output
+
+Visit [our site](https://example.com) for more.</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">HTML Preview</label>
+                    <div class="preview" id="preview"></div>
+                </div>
+            </div>
+
+            <div class="button-row">
+                <button class="btn btn-secondary" onclick="copyHTML()">Copy HTML</button>
+                <button class="btn btn-secondary" onclick="downloadHTML()">Download HTML</button>
+                <button class="btn btn-secondary" onclick="clearMarkdown()">Clear</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const input = document.getElementById('markdownInput');
+        const preview = document.getElementById('preview');
+
+        function updatePreview() {
+            const markdown = input.value;
+            preview.innerHTML = marked.parse(markdown);
+        }
+
+        function copyHTML() {
+            const html = preview.innerHTML;
+            navigator.clipboard.writeText(html).then(() => {
+                alert('HTML copied to clipboard');
+            });
+        }
+
+        function downloadHTML() {
+            const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+${preview.innerHTML}
+</body>
+</html>`;
+
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/html;charset=utf-8,' + encodeURIComponent(html));
+            element.setAttribute('download', 'document.html');
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        function clearMarkdown() {
+            input.value = '';
+            preview.innerHTML = '';
+        }
+
+        // Initialize
+        input.addEventListener('input', updatePreview);
+        updatePreview();
+    </script>
+</body>
+
+</html>

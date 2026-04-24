@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>JSON Formatter</title>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'km,en,zh-CN',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript"
+        src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --card-border: rgba(255, 255, 255, 0.12);
+            --text: #ecf2ff;
+            --muted: #9fb0d0;
+            --accent: #6ea8fe;
+            --accent-2: #8b5cf6;
+            --danger: #fb7185;
+            --success: #34d399;
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+            --radius: 24px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(110, 168, 254, .22), transparent 28%),
+                radial-gradient(circle at top right, rgba(139, 92, 246, .18), transparent 25%),
+                linear-gradient(180deg, #09101d 0%, #0b1020 45%, #050814 100%);
+            color: var(--text);
+        }
+
+        body {
+            padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+        }
+
+        .glow {
+            position: fixed;
+            width: 320px;
+            height: 320px;
+            border-radius: 999px;
+            filter: blur(80px);
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow.one {
+            top: 0;
+            left: -80px;
+            background: #3b82f6;
+        }
+
+        .glow.two {
+            right: -80px;
+            bottom: 0;
+            background: #7c3aed;
+        }
+
+        .app {
+            position: relative;
+            z-index: 1;
+            width: min(1000px, 100%);
+            margin: 0 auto;
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .03));
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .back-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .text-button {
+            padding: 0 14px;
+            height: 44px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .brand h1 {
+            margin: 0 0 8px;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .form-textarea {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            font-size: 0.9rem;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            resize: vertical;
+            min-height: 250px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-textarea:focus {
+            border-color: var(--accent);
+        }
+
+        .form-textarea::placeholder {
+            color: var(--muted);
+        }
+
+        .select-wrap {
+            position: relative;
+        }
+
+        .select-wrap::after {
+            content: '▾';
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            pointer-events: none;
+            font-size: 0.95rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 44px 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            font-size: 0.95rem;
+            font-weight: 600;
+            outline: none;
+            transition: border-color 0.2s ease, background 0.2s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, .08);
+        }
+
+        .button-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(110, 168, 254, .3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid rgba(255, 255, 255, .12);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, .1);
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .message.success {
+            background: rgba(52, 211, 153, .1);
+            border: 1px solid rgba(52, 211, 153, .3);
+            color: var(--success);
+        }
+
+        .message.error {
+            background: rgba(251, 113, 133, .1);
+            border: 1px solid rgba(251, 113, 133, .3);
+            color: var(--danger);
+        }
+
+        .tabs-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 16px;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-weight: 600;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-btn:hover {
+            color: var(--text);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tree-view {
+            background:
+                radial-gradient(circle at top left, rgba(110, 168, 254, .12), transparent 32%),
+                rgba(4, 9, 20, .82);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 18px;
+            padding: 18px;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 0.9rem;
+            min-height: 260px;
+            max-height: 540px;
+            overflow: auto;
+            line-height: 1.65;
+        }
+
+        .tree-placeholder {
+            color: var(--muted);
+            text-align: center;
+            padding: 52px 16px;
+        }
+
+        .json-tree-root {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .json-tree-node {
+            position: relative;
+            padding-left: 18px;
+        }
+
+        .json-tree-node::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 26px;
+            bottom: 8px;
+            width: 1px;
+            background: rgba(255, 255, 255, .1);
+        }
+
+        .json-tree-node:last-child::before {
+            bottom: 16px;
+        }
+
+        .json-tree-summary,
+        .json-tree-leaf {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            min-height: 26px;
+        }
+
+        .json-tree-toggle {
+            width: 18px;
+            height: 18px;
+            border: none;
+            padding: 0;
+            margin-top: 2px;
+            border-radius: 6px;
+            background: rgba(110, 168, 254, .12);
+            color: var(--accent);
+            cursor: pointer;
+            font: inherit;
+            line-height: 18px;
+            text-align: center;
+            flex: 0 0 18px;
+        }
+
+        .json-tree-toggle:hover {
+            background: rgba(110, 168, 254, .2);
+        }
+
+        .json-tree-spacer {
+            width: 18px;
+            flex: 0 0 18px;
+        }
+
+        .json-tree-children {
+            margin-left: 14px;
+            padding-left: 12px;
+            border-left: 1px dashed rgba(255, 255, 255, .1);
+        }
+
+        .json-tree-node.collapsed>.json-tree-children {
+            display: none;
+        }
+
+        .json-tree-key {
+            color: #7dd3fc;
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        .json-tree-meta {
+            color: var(--muted);
+        }
+
+        .json-tree-preview {
+            color: #cbd5e1;
+            opacity: .88;
+        }
+
+        .tree-string {
+            color: #fbbf24;
+        }
+
+        .tree-number {
+            color: #34d399;
+        }
+
+        .tree-boolean {
+            color: #f472b6;
+        }
+
+        .tree-null {
+            color: #94a3b8;
+        }
+
+        .tree-bracket {
+            color: #cbd5e1;
+        }
+
+        @media (max-width: 768px) {
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glow one"></div>
+    <div class="glow two"></div>
+
+    <main class="app">
+        <section class="card">
+            <div class="back-row">
+                <a href="index.html" class="text-button">← Back to Services</a>
+                <div id="google_translate_element"></div>
+            </div>
+
+            <div class="brand">
+                <h1>{}️ JSON Formatter</h1>
+                <p>Format, validate, convert JSON data, and view as tree</p>
+            </div>
+
+            <div id="message" class="message"></div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label class="form-label">Input JSON</label>
+                <textarea id="jsonInput" class="form-textarea" placeholder='{"name": "John", "age": 30}'></textarea>
+            </div>
+
+            <div class="tabs-row">
+                <button class="tab-btn active" onclick="switchTab('format', this)">Formatted</button>
+                <button class="tab-btn" onclick="switchTab('tree', this)">Tree View</button>
+                <button class="tab-btn" onclick="switchTab('dart', this)">Dart Code</button>
+            </div>
+
+            <div id="format" class="tab-content active">
+                <div class="form-group">
+                    <label class="form-label">Output</label>
+                    <textarea id="jsonOutput" class="form-textarea" readonly></textarea>
+                </div>
+                <div class="button-row">
+                    <button class="btn btn-primary" onclick="formatJSON()">Format</button>
+                    <button class="btn btn-secondary" onclick="minifyJSON()">Minify</button>
+                    <button class="btn btn-secondary" onclick="copyOutput()">Copy</button>
+                </div>
+            </div>
+
+            <div id="tree" class="tab-content">
+                <div class="tree-view" id="treeView">
+                    <div class="tree-placeholder">Paste JSON and click Generate Tree to inspect it.</div>
+                </div>
+                <div class="button-row" style="margin-top: 16px;">
+                    <button class="btn btn-primary" onclick="renderTree()">Generate Tree</button>
+                    <button class="btn btn-secondary" onclick="copyTree()">Copy Tree</button>
+                </div>
+            </div>
+
+            <div id="dart" class="tab-content">
+                <div class="form-group">
+                    <label class="form-label">Dart Format</label>
+                    <div class="select-wrap">
+                        <select id="dartFormat" class="form-input" style="cursor: pointer;">
+                            <option value="freezed">Freezed</option>
+                            <option value="jsonserializable">JsonSerializable</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Dart Code</label>
+                    <textarea id="dartOutput" class="form-textarea" readonly></textarea>
+                </div>
+                <div class="button-row">
+                    <button class="btn btn-primary" onclick="convertToDart()">Convert to Dart</button>
+                    <button class="btn btn-secondary" onclick="copyDart()">Copy</button>
+                </div>
+            </div>
+
+            <div class="button-row"
+                style="margin-top: 16px; border-top: 1px solid rgba(255, 255, 255, .08); padding-top: 16px;">
+                <button class="btn btn-secondary" onclick="validateJSON()">Validate</button>
+                <button class="btn btn-secondary" onclick="clearAll()">Clear All</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        function switchTab(tab, button) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            if (button) {
+                button.classList.add('active');
+            }
+
+            if (tab === 'tree' && document.getElementById('jsonInput').value.trim()) {
+                renderTree();
+            }
+        }
+
+        function showMessage(msg, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = msg;
+            messageEl.className = 'message ' + type;
+            messageEl.style.display = 'block';
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 3000);
+        }
+
+        function parseJSON() {
+            const input = document.getElementById('jsonInput').value.trim();
+            if (!input) {
+                showMessage('Please enter JSON', 'error');
+                return undefined;
+            }
+            try {
+                return JSON.parse(input);
+            } catch (e) {
+                showMessage('Invalid JSON: ' + e.message, 'error');
+                return undefined;
+            }
+        }
+
+        function formatJSON() {
+            const input = document.getElementById('jsonInput').value.trim();
+
+            if (!input) {
+                showMessage('Please enter JSON', 'error');
+                return;
+            }
+
+            try {
+                const parsed = JSON.parse(input);
+                const formatted = JSON.stringify(parsed, null, 2);
+                document.getElementById('jsonOutput').value = formatted;
+                showMessage('JSON formatted successfully', 'success');
+            } catch (e) {
+                showMessage('Invalid JSON: ' + e.message, 'error');
+                document.getElementById('jsonOutput').value = '';
+            }
+        }
+
+        function minifyJSON() {
+            const input = document.getElementById('jsonInput').value.trim();
+
+            if (!input) {
+                showMessage('Please enter JSON', 'error');
+                return;
+            }
+
+            try {
+                const parsed = JSON.parse(input);
+                const minified = JSON.stringify(parsed);
+                document.getElementById('jsonOutput').value = minified;
+                showMessage('JSON minified successfully', 'success');
+            } catch (e) {
+                showMessage('Invalid JSON: ' + e.message, 'error');
+                document.getElementById('jsonOutput').value = '';
+            }
+        }
+
+        function validateJSON() {
+            const input = document.getElementById('jsonInput').value.trim();
+
+            if (!input) {
+                showMessage('Please enter JSON', 'error');
+                return;
+            }
+
+            try {
+                JSON.parse(input);
+                showMessage('Valid JSON!', 'success');
+            } catch (e) {
+                showMessage('Invalid JSON: ' + e.message, 'error');
+            }
+        }
+
+        function copyOutput() {
+            const output = document.getElementById('jsonOutput').value;
+
+            if (!output) {
+                showMessage('Nothing to copy', 'error');
+                return;
+            }
+
+            navigator.clipboard.writeText(output).then(() => {
+                showMessage('Copied to clipboard', 'success');
+            });
+        }
+
+        function renderTree() {
+            const parsed = parseJSON();
+            if (parsed === undefined) return;
+
+            try {
+                const treeView = document.getElementById('treeView');
+                treeView.innerHTML = '';
+                treeView.appendChild(buildTreeNode('root', parsed, true));
+                showMessage('Tree view generated', 'success');
+            } catch (e) {
+                showMessage('Error generating tree: ' + e.message, 'error');
+            }
+        }
+
+        function buildTreeNode(key, value, isRoot = false) {
+            const node = document.createElement('div');
+            node.className = 'json-tree-node';
+
+            if (isPrimitive(value)) {
+                node.appendChild(buildLeafRow(key, value, isRoot));
+                return node;
+            }
+
+            const summary = document.createElement('div');
+            summary.className = 'json-tree-summary';
+
+            const toggle = document.createElement('button');
+            toggle.type = 'button';
+            toggle.className = 'json-tree-toggle';
+            toggle.textContent = isRoot ? '-' : '+';
+
+            const label = document.createElement('span');
+            label.innerHTML = getNodeLabel(key, value, isRoot, false);
+
+            summary.appendChild(toggle);
+            summary.appendChild(label);
+            node.appendChild(summary);
+
+            const children = document.createElement('div');
+            children.className = 'json-tree-children';
+
+            if (Array.isArray(value)) {
+                value.forEach((item, index) => {
+                    children.appendChild(buildTreeNode(`[${index}]`, item));
+                });
+            } else {
+                Object.keys(value).forEach(childKey => {
+                    children.appendChild(buildTreeNode(childKey, value[childKey]));
+                });
+            }
+
+            node.appendChild(children);
+
+            if (!isRoot) {
+                node.classList.add('collapsed');
+            }
+
+            toggle.addEventListener('click', function () {
+                const collapsed = node.classList.toggle('collapsed');
+                toggle.textContent = collapsed ? '+' : '-';
+                label.innerHTML = getNodeLabel(key, value, isRoot, collapsed);
+            });
+
+            return node;
+        }
+
+        function buildLeafRow(key, value, isRoot) {
+            const row = document.createElement('div');
+            row.className = 'json-tree-leaf';
+
+            const spacer = document.createElement('span');
+            spacer.className = 'json-tree-spacer';
+            row.appendChild(spacer);
+
+            const valueEl = document.createElement('span');
+            valueEl.innerHTML = `${formatKey(key, isRoot)}${formatValue(value)}`;
+            row.appendChild(valueEl);
+
+            return row;
+        }
+
+        function isPrimitive(value) {
+            return value === null || typeof value !== 'object';
+        }
+
+        function getNodeLabel(key, value, isRoot, collapsed) {
+            const isArray = Array.isArray(value);
+            const count = isArray ? value.length : Object.keys(value).length;
+            const typeLabel = isArray ? 'Array' : 'Object';
+            const braceOpen = isArray ? '[' : '{';
+            const braceClose = isArray ? ']' : '}';
+            const preview = collapsed ? getCollapsedPreview(value) : '';
+
+            return [
+                formatKey(key, isRoot),
+                `<span class="tree-bracket">${braceOpen}${braceClose}</span>`,
+                ` <span class="json-tree-meta">${typeLabel} • ${count} item${count === 1 ? '' : 's'}</span>`,
+                preview ? ` <span class="json-tree-preview">${preview}</span>` : ''
+            ].join('');
+        }
+
+        function formatKey(key, isRoot) {
+            if (isRoot) {
+                return '<span class="json-tree-key">root</span> ';
+            }
+
+            if (key.startsWith('[')) {
+                return `<span class="json-tree-key">${escapeHtml(key)}</span> `;
+            }
+
+            return `<span class="json-tree-key">"${escapeHtml(key)}"</span>: `;
+        }
+
+        function formatValue(value) {
+            if (value === null) return '<span class="tree-null">null</span>';
+            if (typeof value === 'string') return `<span class="tree-string">"${escapeHtml(value)}"</span>`;
+            if (typeof value === 'number') return `<span class="tree-number">${value}</span>`;
+            if (typeof value === 'boolean') return `<span class="tree-boolean">${value}</span>`;
+            return `<span>${escapeHtml(String(value))}</span>`;
+        }
+
+        function getCollapsedPreview(value) {
+            if (Array.isArray(value)) {
+                if (value.length === 0) return '<span class="tree-null">empty</span>';
+                const preview = value.slice(0, 3).map(item => getPreviewToken(item)).join(', ');
+                return `(${preview}${value.length > 3 ? ', ...' : ''})`;
+            }
+
+            const keys = Object.keys(value);
+            if (keys.length === 0) return '<span class="tree-null">empty</span>';
+            const preview = keys.slice(0, 3).map(key => `"${escapeHtml(key)}"`).join(', ');
+            return `(${preview}${keys.length > 3 ? ', ...' : ''})`;
+        }
+
+        function getPreviewToken(value) {
+            if (value === null) return 'null';
+            if (typeof value === 'string') return `"${escapeHtml(value.length > 16 ? value.slice(0, 16) + '…' : value)}"`;
+            if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+            if (Array.isArray(value)) return '[...]';
+            return '{...}';
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;');
+        }
+
+        function copyTree() {
+            const treeView = document.getElementById('treeView').innerText;
+            if (!treeView || document.querySelector('#treeView .tree-placeholder')) {
+                showMessage('Generate tree first', 'error');
+                return;
+            }
+            navigator.clipboard.writeText(treeView).then(() => {
+                showMessage('Tree copied to clipboard', 'success');
+            });
+        }
+
+        function convertToDart() {
+            const parsed = parseJSON();
+            if (parsed === undefined) return;
+
+            try {
+                const format = document.getElementById('dartFormat').value;
+                let dartCode;
+
+                if (format === 'freezed') {
+                    if (!isPlainObject(parsed)) {
+                        throw new Error('Freezed requires the root JSON value to be an object');
+                    }
+                    dartCode = jsonToDartFreezed(parsed);
+                } else {
+                    if (!isPlainObject(parsed)) {
+                        throw new Error('JsonSerializable requires the root JSON value to be an object');
+                    }
+                    dartCode = jsonToDartUnfrozen(parsed);
+                }
+
+                document.getElementById('dartOutput').value = dartCode;
+                showMessage('Converted to Dart', 'success');
+            } catch (e) {
+                showMessage('Error converting to Dart: ' + e.message, 'error');
+            }
+        }
+
+        function jsonToDartMap(obj, indent = 0) {
+            const spaces = '  '.repeat(indent);
+
+            if (obj === null) return 'null';
+            if (typeof obj === 'string') return `'${escapeDartString(obj)}'`;
+            if (typeof obj === 'number') return String(obj);
+            if (typeof obj === 'boolean') return obj ? 'true' : 'false';
+
+            if (Array.isArray(obj)) {
+                if (obj.length === 0) return '[]';
+                let result = '[\n';
+                obj.forEach((item, idx) => {
+                    result += spaces + '  ' + jsonToDartMap(item, indent + 1);
+                    if (idx < obj.length - 1) result += ',';
+                    result += '\n';
+                });
+                result += spaces + ']';
+                return result;
+            }
+
+            if (typeof obj === 'object') {
+                const keys = Object.keys(obj);
+                if (keys.length === 0) return '{}';
+                let result = '{\n';
+                keys.forEach((key, idx) => {
+                    result += spaces + '  \'' + escapeDartString(key) + '\': ' + jsonToDartMap(obj[key], indent + 1);
+                    if (idx < keys.length - 1) result += ',';
+                    result += '\n';
+                });
+                result += spaces + '}';
+                return result;
+            }
+        }
+
+        function jsonToDartFreezed(obj) {
+            const className = 'MyModel';
+            const state = createDartModelState();
+            generateDartClasses(obj, className, state);
+
+            let code = `import 'package:freezed_annotation/freezed_annotation.dart';\n\npart '${toSnakeCase(className)}.freezed.dart';\npart '${toSnakeCase(className)}.g.dart';\n\n`;
+            code += state.classes.map(model => renderFreezedClass(model)).join('\n\n');
+            return code;
+        }
+
+        function jsonToDartUnfrozen(obj) {
+            const className = 'MyModel';
+            const state = createDartModelState();
+            generateDartClasses(obj, className, state);
+
+            let code = `import 'package:json_annotation/json_annotation.dart';\n\npart '${toSnakeCase(className)}.g.dart';\n\n`;
+            code += state.classes.map(model => renderJsonSerializableClass(model)).join('\n\n');
+            return code;
+        }
+
+        function createDartModelState() {
+            return {
+                classes: [],
+                usedNames: new Set()
+            };
+        }
+
+        function generateDartClasses(obj, className, state) {
+            const normalizedClassName = toPascalCase(className) || 'MyModel';
+            const safeClassName = uniqueClassName(normalizedClassName, state);
+            const fields = Object.keys(obj).map(key => inferDartField(key, obj[key], safeClassName, state));
+            const model = {
+                name: safeClassName,
+                fields
+            };
+
+            state.classes.push(model);
+
+            return model;
+        }
+
+        function inferDartField(originalKey, value, parentClassName, state) {
+            const safeName = toCamelCase(originalKey) || 'value';
+            const fieldName = sanitizeDartIdentifier(safeName);
+            let type = 'dynamic';
+            let nullable = value === null;
+
+            if (value === null) {
+                type = 'dynamic';
+            } else if (typeof value === 'string') {
+                type = 'String';
+            } else if (typeof value === 'number') {
+                type = Number.isInteger(value) ? 'int' : 'double';
+            } else if (typeof value === 'boolean') {
+                type = 'bool';
+            } else if (Array.isArray(value)) {
+                type = inferDartListType(originalKey, value, parentClassName, state);
+            } else if (isPlainObject(value)) {
+                const childClassName = `${parentClassName}${toPascalCase(originalKey) || 'Item'}`;
+                const model = generateDartClasses(value, childClassName, state);
+                type = model.name;
+            }
+
+            return {
+                originalKey,
+                name: fieldName,
+                type,
+                nullable,
+                useJsonKey: fieldName !== originalKey || !isValidDartIdentifier(originalKey)
+            };
+        }
+
+        function inferDartListType(originalKey, items, parentClassName, state) {
+            if (items.length === 0) {
+                return 'List<dynamic>';
+            }
+
+            const firstNonNull = items.find(item => item !== null);
+            if (firstNonNull === undefined) {
+                return 'List<dynamic>';
+            }
+
+            if (typeof firstNonNull === 'string') return 'List<String>';
+            if (typeof firstNonNull === 'number') return `List<${Number.isInteger(firstNonNull) ? 'int' : 'double'}>`;
+            if (typeof firstNonNull === 'boolean') return 'List<bool>';
+            if (Array.isArray(firstNonNull)) return 'List<dynamic>';
+
+            if (isPlainObject(firstNonNull)) {
+                const childClassName = `${parentClassName}${toPascalCase(originalKey) || 'Item'}Item`;
+                const model = generateDartClasses(firstNonNull, childClassName, state);
+                return `List<${model.name}>`;
+            }
+
+            return 'List<dynamic>';
+        }
+
+        function renderFreezedClass(model) {
+            let code = `@freezed\nclass ${model.name} with _$${model.name} {\n`;
+            code += `  const factory ${model.name}({\n`;
+
+            model.fields.forEach(field => {
+                if (field.useJsonKey) {
+                    code += `    @JsonKey(name: '${escapeDartString(field.originalKey)}')\n`;
+                }
+                code += `    ${field.nullable ? field.type + '?' : field.type} ${field.name},\n`;
+            });
+
+            code += `  }) = _${model.name};\n\n`;
+            code += `  factory ${model.name}.fromJson(Map<String, dynamic> json) => _$${model.name}FromJson(json);\n`;
+            code += `}`;
+            return code;
+        }
+
+        function renderJsonSerializableClass(model) {
+            let code = `@JsonSerializable()\nclass ${model.name} {\n`;
+
+            model.fields.forEach(field => {
+                if (field.useJsonKey) {
+                    code += `  @JsonKey(name: '${escapeDartString(field.originalKey)}')\n`;
+                }
+                code += `  final ${field.nullable ? field.type + '?' : field.type} ${field.name};\n`;
+            });
+
+            code += `\n  ${model.name}({\n`;
+            model.fields.forEach(field => {
+                code += `    ${field.nullable ? '' : 'required '}this.${field.name},\n`;
+            });
+            code += `  });\n\n`;
+            code += `  factory ${model.name}.fromJson(Map<String, dynamic> json) => _$${model.name}FromJson(json);\n`;
+            code += `  Map<String, dynamic> toJson() => _$${model.name}ToJson(this);\n`;
+            code += `}`;
+            return code;
+        }
+
+        function isPlainObject(value) {
+            return value !== null && typeof value === 'object' && !Array.isArray(value);
+        }
+
+        function sanitizeDartIdentifier(name) {
+            const cleaned = toCamelCase(String(name).replace(/[^a-zA-Z0-9]+/g, ' '));
+            const base = cleaned || 'value';
+            const safe = /^[0-9]/.test(base) ? `value${base}` : base;
+            return DART_RESERVED_WORDS.has(safe) ? `${safe}Field` : safe;
+        }
+
+        function isValidDartIdentifier(name) {
+            return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name) && !DART_RESERVED_WORDS.has(name);
+        }
+
+        function toCamelCase(value) {
+            const parts = splitIdentifierParts(value);
+            return parts.map((part, index) => {
+                const normalized = part.toLowerCase();
+                return index === 0 ? normalized : normalized.charAt(0).toUpperCase() + normalized.slice(1);
+            }).join('');
+        }
+
+        function toPascalCase(value) {
+            const parts = splitIdentifierParts(value);
+            return parts.map(part => {
+                const normalized = part.toLowerCase();
+                return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+            }).join('');
+        }
+
+        function splitIdentifierParts(value) {
+            return String(value)
+                .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+                .match(/[a-zA-Z0-9]+/g) || [];
+        }
+
+        function toSnakeCase(value) {
+            return String(value)
+                .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+                .replace(/[^a-zA-Z0-9]+/g, '_')
+                .replace(/^_+|_+$/g, '')
+                .toLowerCase();
+        }
+
+        function uniqueClassName(baseName, state) {
+            let candidate = baseName;
+            let suffix = 2;
+            while (state.usedNames.has(candidate)) {
+                candidate = `${baseName}${suffix}`;
+                suffix += 1;
+            }
+            state.usedNames.add(candidate);
+            return candidate;
+        }
+
+        function escapeDartString(value) {
+            return String(value)
+                .replaceAll('\\', '\\\\')
+                .replaceAll("'", "\\'")
+                .replaceAll('\n', '\\n')
+                .replaceAll('\r', '\\r')
+                .replaceAll('\t', '\\t');
+        }
+
+        const DART_RESERVED_WORDS = new Set([
+            'abstract', 'as', 'assert', 'async', 'await', 'base', 'break', 'case', 'catch', 'class', 'const',
+            'continue', 'covariant', 'default', 'deferred', 'do', 'dynamic', 'else', 'enum', 'export', 'extends',
+            'extension', 'external', 'factory', 'false', 'final', 'finally', 'for', 'Function', 'if', 'implements',
+            'import', 'in', 'interface', 'is', 'late', 'library', 'mixin', 'new', 'null', 'on', 'operator', 'part',
+            'required', 'rethrow', 'return', 'sealed', 'set', 'show', 'static', 'super', 'switch', 'sync', 'this',
+            'throw', 'true', 'try', 'type', 'typedef', 'var', 'void', 'when', 'while', 'with', 'yield'
+        ]);
+
+        function copyDart() {
+            const dartCode = document.getElementById('dartOutput').value;
+            if (!dartCode) {
+                showMessage('Convert to Dart first', 'error');
+                return;
+            }
+            navigator.clipboard.writeText(dartCode).then(() => {
+                showMessage('Dart code copied to clipboard', 'success');
+            });
+        }
+
+        function clearAll() {
+            document.getElementById('jsonInput').value = '';
+            document.getElementById('jsonOutput').value = '';
+            document.getElementById('dartOutput').value = '';
+            document.getElementById('treeView').innerHTML = '<div class="tree-placeholder">Paste JSON and click Generate Tree to inspect it.</div>';
+            document.getElementById('message').style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>

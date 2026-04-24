@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Color Converter</title>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'km,en,zh-CN',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript"
+        src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --card-border: rgba(255, 255, 255, 0.12);
+            --text: #ecf2ff;
+            --muted: #9fb0d0;
+            --accent: #6ea8fe;
+            --accent-2: #8b5cf6;
+            --success: #34d399;
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+            --radius: 24px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(110, 168, 254, .22), transparent 28%),
+                radial-gradient(circle at top right, rgba(139, 92, 246, .18), transparent 25%),
+                linear-gradient(180deg, #09101d 0%, #0b1020 45%, #050814 100%);
+            color: var(--text);
+        }
+
+        body {
+            padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+        }
+
+        .glow {
+            position: fixed;
+            width: 320px;
+            height: 320px;
+            border-radius: 999px;
+            filter: blur(80px);
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow.one {
+            top: 0;
+            left: -80px;
+            background: #3b82f6;
+        }
+
+        .glow.two {
+            right: -80px;
+            bottom: 0;
+            background: #7c3aed;
+        }
+
+        .app {
+            position: relative;
+            z-index: 1;
+            width: min(1000px, 100%);
+            margin: 0 auto;
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .03));
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .back-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .text-button {
+            padding: 0 14px;
+            height: 44px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .brand h1 {
+            margin: 0 0 8px;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        .color-row {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 24px;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .color-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 16px;
+            border: 2px solid rgba(255, 255, 255, .12);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, .5);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            font-size: 1rem;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent);
+        }
+
+        .form-input::placeholder {
+            color: var(--muted);
+        }
+
+        .color-picker-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .color-picker-input {
+            width: 60px;
+            height: 45px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid rgba(255, 255, 255, .12);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, .1);
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .color-item {
+            padding: 12px;
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .color-item:hover {
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, .06);
+        }
+
+        .color-item-value {
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--muted);
+            word-break: break-all;
+        }
+
+        @media (max-width: 768px) {
+            .color-row {
+                grid-template-columns: 1fr;
+            }
+
+            .color-preview {
+                width: 100%;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glow one"></div>
+    <div class="glow two"></div>
+
+    <main class="app">
+        <section class="card">
+            <div class="back-row">
+                <a href="index.html" class="text-button">← Back to Services</a>
+                <div id="google_translate_element"></div>
+            </div>
+
+            <div class="brand">
+                <h1>🎨 Color Converter</h1>
+                <p>Convert between HEX, RGB, and HSL color formats</p>
+            </div>
+
+            <div class="color-row">
+                <div class="color-preview" id="colorPreview"></div>
+                <div>
+                    <div class="form-group">
+                        <label class="form-label">Color Picker</label>
+                        <div class="color-picker-row">
+                            <input type="color" id="colorPicker" class="color-picker-input"
+                                onchange="updateFromPicker()" value="#6ea8fe">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">HEX</label>
+                        <input type="text" id="hexInput" class="form-input" placeholder="#6ea8fe" value="#6ea8fe"
+                            onchange="convertFromHEX()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">RGB</label>
+                <input type="text" id="rgbInput" class="form-input" placeholder="rgb(110, 168, 254)"
+                    onchange="convertFromRGB()">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">HSL</label>
+                <input type="text" id="hslInput" class="form-input" placeholder="hsl(217, 100%, 71%)"
+                    onchange="convertFromHSL()">
+            </div>
+
+            <div class="button-row">
+                <button class="btn btn-secondary" onclick="copyHEX()">Copy HEX</button>
+                <button class="btn btn-secondary" onclick="copyRGB()">Copy RGB</button>
+                <button class="btn btn-secondary" onclick="copyHSL()">Copy HSL</button>
+                <button class="btn btn-secondary" onclick="randomColor()">Random Color</button>
+            </div>
+
+            <div class="color-grid" id="colorGrid" style="margin-top: 30px; display: none;">
+                <h3 style="grid-column: 1/-1; margin: 0 0 10px;">Color Variations</h3>
+                <div id="variationsContainer"
+                    style="grid-column: 1/-1; display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px;">
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function rgbToHex(r, g, b) {
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+
+        function rgbToHsl(r, g, b) {
+            r /= 255;
+            g /= 255;
+            b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+
+            if (max === min) {
+                h = s = 0;
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                    case g: h = ((b - r) / d + 2) / 6; break;
+                    case b: h = ((r - g) / d + 4) / 6; break;
+                }
+            }
+
+            return {
+                h: Math.round(h * 360),
+                s: Math.round(s * 100),
+                l: Math.round(l * 100)
+            };
+        }
+
+        function hslToRgb(h, s, l) {
+            h /= 360;
+            s /= 100;
+            l /= 100;
+            let r, g, b;
+
+            if (s === 0) {
+                r = g = b = l;
+            } else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1 / 6) return p + (q - p) * 6 * t;
+                    if (t < 1 / 2) return q;
+                    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                    return p;
+                };
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1 / 3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1 / 3);
+            }
+
+            return {
+                r: Math.round(r * 255),
+                g: Math.round(g * 255),
+                b: Math.round(b * 255)
+            };
+        }
+
+        function updatePreview() {
+            const hex = document.getElementById('hexInput').value;
+            document.getElementById('colorPreview').style.backgroundColor = hex;
+            document.getElementById('colorPicker').value = hex;
+        }
+
+        function updateFromPicker() {
+            const hex = document.getElementById('colorPicker').value;
+            document.getElementById('hexInput').value = hex;
+            convertFromHEX();
+        }
+
+        function convertFromHEX() {
+            const hex = document.getElementById('hexInput').value;
+            const rgb = hexToRgb(hex);
+
+            if (rgb) {
+                document.getElementById('rgbInput').value = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+                const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+                document.getElementById('hslInput').value = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
+                updatePreview();
+                generateVariations(hex);
+            }
+        }
+
+        function convertFromRGB() {
+            const rgb = document.getElementById('rgbInput').value;
+            const match = rgb.match(/\d+/g);
+
+            if (match && match.length >= 3) {
+                const hex = rgbToHex(parseInt(match[0]), parseInt(match[1]), parseInt(match[2]));
+                document.getElementById('hexInput').value = hex;
+                convertFromHEX();
+            }
+        }
+
+        function convertFromHSL() {
+            const hsl = document.getElementById('hslInput').value;
+            const match = hsl.match(/\d+/g);
+
+            if (match && match.length >= 3) {
+                const rgb = hslToRgb(parseInt(match[0]), parseInt(match[1]), parseInt(match[2]));
+                const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+                document.getElementById('hexInput').value = hex;
+                convertFromHEX();
+            }
+        }
+
+        function randomColor() {
+            const hex = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+            document.getElementById('hexInput').value = hex;
+            convertFromHEX();
+        }
+
+        function copyHEX() {
+            navigator.clipboard.writeText(document.getElementById('hexInput').value);
+            alert('Copied HEX');
+        }
+
+        function copyRGB() {
+            navigator.clipboard.writeText(document.getElementById('rgbInput').value);
+            alert('Copied RGB');
+        }
+
+        function copyHSL() {
+            navigator.clipboard.writeText(document.getElementById('hslInput').value);
+            alert('Copied HSL');
+        }
+
+        function generateVariations(baseHex) {
+            const container = document.getElementById('variationsContainer');
+            container.innerHTML = '';
+
+            const rgb = hexToRgb(baseHex);
+            const variations = [
+                { name: 'Darker', factor: 0.7 },
+                { name: 'Base', factor: 1 },
+                { name: 'Lighter', factor: 1.3 },
+            ];
+
+            variations.forEach(v => {
+                const r = Math.min(255, Math.round(rgb.r * v.factor));
+                const g = Math.min(255, Math.round(rgb.g * v.factor));
+                const b = Math.min(255, Math.round(rgb.b * v.factor));
+                const hex = rgbToHex(r, g, b);
+
+                const item = document.createElement('div');
+                item.style.backgroundColor = hex;
+                item.style.borderRadius = '8px';
+                item.style.height = '80px';
+                item.title = hex;
+                item.onclick = () => {
+                    document.getElementById('hexInput').value = hex;
+                    convertFromHEX();
+                };
+                container.appendChild(item);
+            });
+
+            document.getElementById('colorGrid').style.display = 'block';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            convertFromHEX();
+        });
+    </script>
+</body>
+
+</html>
